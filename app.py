@@ -630,4 +630,3 @@ st.markdown("""
 <div style="font-size: 0.75rem; margin-top: 0.5rem;">2024 - Built with Streamlit</div>
 </div>
 """, unsafe_allow_html=True)
-       """)
