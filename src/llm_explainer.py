@@ -10,7 +10,8 @@ from src.recommender import (
 
 # Global client variable
 _client = None
-MODEL = "openai/gpt-3.5-turbo"  # Changed to stable model
+# Use ONLY the free GPT-OSS-120B model
+MODEL = "openai/gpt-oss-120b:free"  # Free model only
 
 def initialize_llm(api_key: str):
     """Initialize OpenRouter client with API key"""
@@ -105,8 +106,9 @@ Keep it engaging and informative."""
         if client is None:
             return "⚠️ OpenRouter API key not configured. Please add your API key in the sidebar to get AI explanations."
         
+        # Explicitly specify the free model
         response = client.chat.completions.create(
-            model=MODEL,
+            model=MODEL,  # Uses "openai/gpt-oss-120b:free"
             messages=[
                 {
                     "role": "system",
@@ -117,7 +119,7 @@ Keep it engaging and informative."""
                     "content": prompt
                 }
             ],
-            max_tokens=200,
+            max_tokens=250,
             temperature=0.7
         )
         
