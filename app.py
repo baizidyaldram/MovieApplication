@@ -5,7 +5,7 @@ st.set_page_config(
     page_title="Hybrid Movie Recommendation System",
     page_icon="🎬",
     layout="wide",
-    initial_sidebar_state="collapsed"  # Changed to collapsed for top navigation
+    initial_sidebar_state="collapsed"
 )
 
 # Custom CSS for better UI
@@ -219,7 +219,7 @@ with tab2:
         
         with model_tab3:
             st.markdown("**Hybrid Score Formula:**")
-            st.latex(r'''\text{Hybrid} = 0.5 \times \text{SBERT} + 0.25 \times \text{XGBoost} + 0.15 \times \text{Latent} + 0.1 \times \text{RRF}''')
+            st.latex(r'\text{Hybrid} = 0.5 \times \text{SBERT} + 0.25 \times \text{XGBoost} + 0.15 \times \text{Latent} + 0.1 \times \text{RRF}')
             
             # Show hybrid scores for top recommendations
             from src.recommender import get_recommendations
@@ -273,11 +273,11 @@ with tab3:
                 st.session_state["explanations"] = {}
         
         if "recs" in st.session_state and st.session_state["recs"]:
-            st.markdown(f"---")
+            st.markdown("---")
             st.markdown(f"### 🎬 Top recommendations based on **{st.session_state['source']}**")
             
             # Display recommendations in grid (horizontal layout)
-            cols = st.columns(2)  # 2 columns for horizontal layout
+            cols = st.columns(2)
             
             for idx, rec in enumerate(st.session_state["recs"]):
                 with cols[idx % 2]:
@@ -294,7 +294,7 @@ with tab3:
                         # Generate explanation button
                         if st.button(f"💡 Explain This", key=f"explain_{idx}_{rec['title']}"):
                             if st.session_state.openrouter_api_key:
-                                with st.spinner(f"🤖 Generating AI explanation..."):
+                                with st.spinner("🤖 Generating AI explanation..."):
                                     explanation = explain_movie(st.session_state["source"], rec["title"])
                                     st.session_state["explanations"][rec['title']] = explanation
                             else:
@@ -322,7 +322,6 @@ with tab4:
                 st.subheader("📈 Performance Metrics")
                 st.dataframe(df, use_container_width=True, hide_index=True)
                 
-                # Metrics visualization
                 metrics = ["AvgSim@5", "Diversity@5", "VoteQuality@5"]
                 available_metrics = [m for m in metrics if m in df.columns]
                 
@@ -358,3 +357,32 @@ with tab5:
     - **OpenRouter AI**: For generating natural language explanations
     
     ### 📊 Model Weights:
+    
+    Hybrid Score = 50% SBERT + 25% XGBoost + 15% Latent + 10% RRF
+    
+    ### 🎯 Features:
+    
+    - Real-time recommendations
+    - AI-powered explanations
+    - Multiple similarity metrics
+    - Comprehensive evaluation
+    - Interactive visualizations
+    
+    ### 🔗 Links:
+    
+    - [GitHub Repository](https://github.com/baizidyaldram/movieapplication)
+    - [OpenRouter API](https://openrouter.io)
+    - [Streamlit Cloud](https://streamlit.io/cloud)
+    
+    ---
+    
+    Built with ❤️ using Streamlit, Python, and AI
+    """)
+
+# Footer
+st.markdown("---")
+st.markdown("""
+<div style='text-align: center; color: gray; padding: 20px;'>
+    🎬 Hybrid Movie Recommendation System | Powered by SBERT, SVD, XGBoost & OpenRouter AI
+</div>
+""", unsafe_allow_html=True)
