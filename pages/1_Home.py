@@ -1,13 +1,11 @@
 import streamlit as st
 import pandas as pd
-from src.recommender import movies, load_movies
+from src.recommender import movies
 
-# Load movies safely
-try:
-    if 'movies' not in locals() and movies is None:
-        movies = load_movies()
-    st.title("🏠 Home")
-    
+st.title("🏠 Home")
+
+# Check if movies data is loaded properly
+if movies is not None and len(movies) > 0:
     st.markdown("""
     Welcome to the Hybrid Movie Recommendation System.
     
@@ -24,7 +22,7 @@ try:
         st.metric("Movies", len(movies))
     
     with col2:
-        st.metric("Features", len(movies.columns))
+        st.metric("Features", len(movies.columns) if hasattr(movies, 'columns') else 0)
     
     with col3:
         st.metric("Models", "SBERT + SVD + XGB")
@@ -40,10 +38,13 @@ try:
     display_cols = ["title", "year", "vote_average", "popularity"]
     available_cols = [col for col in display_cols if col in movies.columns]
     
-    st.dataframe(
-        movies[available_cols].head(20),
-        use_container_width=True
-    )
+    if available_cols:
+        st.dataframe(
+            movies[available_cols].head(20),
+            use_container_width=True
+        )
+    else:
+        st.warning("Preview columns not available")
     
     st.markdown("---")
     
@@ -57,7 +58,6 @@ try:
     5. **Hybrid Scoring** - Weighted ensemble of all models
     6. **AI Explanation** - OpenRouter-powered natural language insights
     """)
-    
-except Exception as e:
-    st.error(f"Error loading home page: {str(e)}")
-    st.info("Please make sure all required data files are present.")
+else:
+    st.error("⚠️ Movies data not loaded properly. Please check if model files exist in the 'models' directory.")
+    st.info("Required files: movies_processed.pkl, content_sim.npy, latent_sim.npy, xgb_model.pkl, metadata.pkl")
