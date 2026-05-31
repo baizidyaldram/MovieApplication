@@ -72,9 +72,6 @@ with col4:
     )
 
 st.markdown("---")
-
-st.subheader("🏗 Recommendation Pipeline")
-
 st.subheader("🏗 Recommendation Pipeline")
 
 st.code(
@@ -103,4 +100,3 @@ Top Recommendations
 OpenRouter AI Explanation
 """
 )
-OpenRouter AI Explanation
