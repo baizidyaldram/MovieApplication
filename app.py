@@ -608,8 +608,7 @@ with tab5:
 - [OpenRouter API](https://openrouter.io)
 - [Streamlit Cloud](https://streamlit.io)
 """)
-
-with col2:
+        with col2:
 st.markdown("""
 <div class="gradient-card">
     <div style="text-align: center;">
