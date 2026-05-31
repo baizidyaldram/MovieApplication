@@ -1,6 +1,5 @@
 
 ### 🎯 Key Features
-
 - ✅ Real-time hybrid recommendations
 - ✅ AI-powered natural language explanations
 - ✅ Multiple similarity metrics
