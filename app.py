@@ -497,42 +497,41 @@ with tab3:
             st.session_state['explanations'] = {}
     
     if 'recommendations' in st.session_state:
-        st.markdown(f"### Top recommendations based on **{st.session_state['source_movie']}**")
-        
-        # Display in grid
-        cols = st.columns(2)
-        for idx, rec in enumerate(st.session_state['recommendations']):
-            with cols[idx % 2]:
-                # Create genre badges HTML
-                genres_html = ""
-                for g in rec.get('genres', ['Various'])[:3]:
-                    genres_html += f'<span class="genre-badge">{g}</span>'
-                
-                st.markdown(f"""
-                <div class="movie-card">
-                    <div class="movie-title">🎬 {rec['title']}</div>
-                    <div class="movie-meta">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
-                    <div class="movie-meta">
-                        {genres_html}
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
-                        <span class="match-score">Match: {rec['match']}%</span>
-                    </div>
+    st.markdown(f"### Top recommendations based on **{st.session_state['source_movie']}**")
+    
+    # Display in grid
+    cols = st.columns(2)
+    for idx, rec in enumerate(st.session_state['recommendations']):
+        with cols[idx % 2]:
+            # Create genre badges HTML
+            genres_html = ""
+            for g in rec.get('genres', ['Various'])[:3]:
+                genres_html += f'<span class="genre-badge">{g}</span>'
+            
+            # Display movie card without extra HTML tags
+            st.markdown(f"""
+            <div class="movie-card">
+                <div class="movie-title">🎬 {rec['title']}</div>
+                <div class="movie-meta">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
+                <div class="movie-meta">{genres_html}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
+                    <span class="match-score">Match: {rec['match']}%</span>
                 </div>
-                """, unsafe_allow_html=True)
-                
-                # Explanation button
-                if st.button(f"Explain why", key=f"exp_{idx}_{rec['title']}"):
-                    if st.session_state.openrouter_api_key:
-                        with st.spinner("Generating AI explanation..."):
-                            explanation = explain_movie(st.session_state['source_movie'], rec['title'])
-                            st.session_state['explanations'][rec['title']] = explanation
-                    else:
-                        st.warning("Add OpenRouter API key for AI explanations")
-                
-                if rec['title'] in st.session_state.get('explanations', {}):
-                    with st.expander("AI Explanation", expanded=True):
-                        st.info(st.session_state['explanations'][rec['title']])
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Explanation button
+            if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
+                if st.session_state.openrouter_api_key:
+                    with st.spinner("Generating AI explanation..."):
+                        explanation = explain_movie(st.session_state['source_movie'], rec['title'])
+                        st.session_state['explanations'][rec['title']] = explanation
+                else:
+                    st.warning("⚠️ Add OpenRouter API key for AI explanations")
+            
+            # Show explanation if available
+            if rec['title'] in st.session_state.get('explanations', {}):
+                st.info(st.session_state['explanations'][rec['title']])
 
 # ==================== TAB 4: EVALUATION ====================
 with tab4:
