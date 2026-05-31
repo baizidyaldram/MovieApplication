@@ -75,8 +75,10 @@ st.markdown("---")
 
 st.subheader("🏗 Recommendation Pipeline")
 
-st.markdown("""
-```text
+st.subheader("🏗 Recommendation Pipeline")
+
+st.code(
+"""
 Movie Query
      │
      ▼
@@ -98,4 +100,7 @@ Hybrid Score
 Top Recommendations
      │
      ▼
+OpenRouter AI Explanation
+"""
+)
 OpenRouter AI Explanation
