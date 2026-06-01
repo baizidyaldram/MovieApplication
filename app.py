@@ -564,55 +564,119 @@ with tab2:
     fig.update_layout(height=400, template="plotly_dark", font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
 
-# ==================== TAB 3: RECOMMENDATIONS (with larger posters) ====================
+# ==================== TAB 3: RECOMMENDATIONS (TEXT-BASED FIRST) ====================
 with tab3:
     st.markdown("### 🎬 AI Movie Recommendations")
     st.markdown("Get personalized movie recommendations powered by hybrid AI")
     
-    col1, col2 = st.columns([2, 1])
+    # Create two methods: Text-based OR Movie-based
+    recommendation_method = st.radio(
+        "How would you like to get recommendations?",
+        ["✍️ Describe what you want", "🎬 Pick a movie you like"],
+        horizontal=True,
+        help="Choose 'Describe what you want' to get recommendations based on your text description"
+    )
     
-    with col1:
-        movie_list = sorted(movies["title"].tolist())
-        source_movie = st.selectbox("Choose a movie you love", movie_list)
-    
-    with col2:
-        n_recs = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
-    
-    custom_query = st.text_input("🔍 Or describe what you're looking for", 
-                                  placeholder="e.g., 'funny action movies', 'romantic dramas with happy endings'...")
-    
-    if st.button("🎯 Get Recommendations", type="primary", use_container_width=True):
-        with st.spinner("🤖 Analyzing and generating recommendations..."):
-            recs = get_recommendations(source_movie, n_recs * 2)
-            st.session_state.recommendations = recs[:n_recs]
-            st.session_state.source_movie = source_movie
-            st.session_state.explanations = {}
-            
-            if st.session_state.auto_explain and st.session_state.openrouter_api_key:
-                with st.spinner("💡 Generating AI explanations..."):
-                    for rec in st.session_state.recommendations:
-                        explanation = explain_movie(source_movie, rec['title'])
-                        st.session_state.explanations[rec['title']] = explanation
-    
-    if st.session_state.recommendations:
-        st.markdown(f"""
-        <div style="text-align: center; margin: 1.5rem 0;">
-            <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
+    if recommendation_method == "✍️ Describe what you want":
+        # TEXT-BASED RECOMMENDATION
+        st.markdown("""
+        <div style="background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+                    padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
+            💡 <strong>Examples:</strong> "funny action movies with high rating", 
+            "romantic dramas from 2010s", "sci-fi thrillers like Inception"
         </div>
         """, unsafe_allow_html=True)
         
-        # FIXED: Display recommendations with LARGER posters (2-column grid, bigger images)
+        user_query = st.text_area(
+            "📝 Describe the kind of movie you want to watch",
+            placeholder="e.g., funny action comedy with ratings above 8, or romantic movies with happy endings...",
+            height=100
+        )
+        
+        col_n1, col_n2 = st.columns([3, 1])
+        with col_n2:
+            n_recs_text = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
+        
+        if st.button("🔍 Find Movies Based on Your Description", type="primary", use_container_width=True):
+            if user_query.strip():
+                with st.spinner("🤖 Analyzing your description and finding matching movies..."):
+                    # Get recommendations based on text query
+                    text_recs = get_recommendations_by_text(user_query, n_recs_text)
+                    st.session_state.recommendations = text_recs
+                    st.session_state.source_query = user_query
+                    st.session_state.recommendation_type = "text"
+                    st.session_state.explanations = {}
+                    
+                    if st.session_state.auto_explain and st.session_state.openrouter_api_key:
+                        with st.spinner("💡 Generating AI explanations for your recommendations..."):
+                            for rec in st.session_state.recommendations:
+                                explanation = explain_movie_by_query(user_query, rec['title'])
+                                st.session_state.explanations[rec['title']] = explanation
+            else:
+                st.warning("⚠️ Please describe what kind of movie you want to watch!")
+    
+    else:
+        # MOVIE-BASED RECOMMENDATION (Original method)
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            movie_list = sorted(movies["title"].tolist())
+            source_movie = st.selectbox("Choose a movie you love", movie_list)
+        
+        with col2:
+            n_recs_movie = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
+        
+        custom_query = st.text_input(
+            "🔍 Or add extra preferences", 
+            placeholder="e.g., 'funny', 'romantic', 'recent movies only'..."
+        )
+        
+        if st.button("🎯 Get Recommendations Based on This Movie", type="primary", use_container_width=True):
+            with st.spinner("🤖 Analyzing and generating recommendations..."):
+                recs = get_recommendations(source_movie, n_recs_movie * 2)
+                # Apply extra filtering if custom query provided
+                if custom_query:
+                    recs = filter_recommendations_by_text(recs, custom_query)
+                st.session_state.recommendations = recs[:n_recs_movie]
+                st.session_state.source_movie = source_movie
+                st.session_state.source_query = custom_query
+                st.session_state.recommendation_type = "movie"
+                st.session_state.explanations = {}
+                
+                if st.session_state.auto_explain and st.session_state.openrouter_api_key:
+                    with st.spinner("💡 Generating AI explanations..."):
+                        for rec in st.session_state.recommendations:
+                            explanation = explain_movie(source_movie, rec['title'])
+                            st.session_state.explanations[rec['title']] = explanation
+    
+    # Display recommendations (same for both methods)
+    if st.session_state.recommendations:
+        # Show context header
+        if st.session_state.get('recommendation_type') == "text":
+            st.markdown(f"""
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <h2>🎯 Based on your description: <span style="color: #667eea;">"{st.session_state.source_query[:80]}"</span></h2>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div style="text-align: center; margin: 1.5rem 0;">
+                <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
+                {f'<p style="color: #a0a0c0;">Extra: {st.session_state.source_query}</p>' if st.session_state.get('source_query') else ''}
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Display recommendations in a 2-column grid
         cols = st.columns(2)
         for idx, rec in enumerate(st.session_state.recommendations):
             with cols[idx % 2]:
-                # FIXED: Larger poster size
                 poster_url = get_movie_poster(rec['title'], rec.get('year', None), size="w342")
                 
-                col_post, col_info = st.columns([1.2, 2])  # Adjusted ratio for larger poster
+                col_post, col_info = st.columns([1.2, 2])
                 
                 with col_post:
                     if poster_url:
-                        st.image(poster_url, use_container_width=True)  # Fills column width
+                        st.image(poster_url, use_container_width=True)
                     else:
                         st.markdown(f"""
                         <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
@@ -641,22 +705,22 @@ with tab3:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Explanation button
                     if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
                         if st.session_state.openrouter_api_key:
                             with st.spinner("🤖 Generating AI explanation..."):
-                                explanation = explain_movie(st.session_state.source_movie, rec['title'])
+                                if st.session_state.get('recommendation_type') == "text":
+                                    explanation = explain_movie_by_query(st.session_state.source_query, rec['title'])
+                                else:
+                                    explanation = explain_movie(st.session_state.source_movie, rec['title'])
                                 st.session_state.explanations[rec['title']] = explanation
                         else:
                             st.warning("⚠️ Add OpenRouter API key for AI explanations")
                     
-                    # Show explanation if available
                     if rec['title'] in st.session_state.get('explanations', {}):
                         with st.expander("💡 AI Explanation", expanded=True):
                             st.info(st.session_state.explanations[rec['title']])
                 
                 st.markdown("---")
-
 # ==================== TAB 4: MODEL INSIGHTS ====================
 with tab4:
     st.markdown("### 🔬 Model Insights & Performance")
