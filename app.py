@@ -475,23 +475,26 @@ with tab2:
         # Sample data for better performance
         sample_df = filtered_df.head(500).copy()
         
-        if len(sample_df) > 0:
-            fig = px.scatter(
-                sample_df,
-                x='vote_count',
-                y='vote_average',
-                title="Relationship between Vote Count and Rating",
-                color_discrete_sequence=['#667eea'],
-                opacity=0.6
-            )
-            fig.update_layout(
-                xaxis_title="Vote Count (Log Scale)",
-                yaxis_title="Average Rating",
-                template="plotly_dark",
-                height=450
-            )
-            fig.update_xaxis(type="log")
-            st.plotly_chart(fig, use_container_width=True)
+        if len(sample_df) > 0 and 'vote_count' in sample_df.columns and 'vote_average' in sample_df.columns:
+            try:
+                fig = px.scatter(
+                    sample_df,
+                    x='vote_count',
+                    y='vote_average',
+                    title="Relationship between Vote Count and Rating",
+                    color_discrete_sequence=['#667eea'],
+                    opacity=0.6
+                )
+                fig.update_layout(
+                    xaxis_title="Vote Count",
+                    yaxis_title="Average Rating",
+                    template="plotly_dark",
+                    height=450
+                )
+                fig.update_xaxis(type="log")
+                st.plotly_chart(fig, use_container_width=True)
+            except Exception as e:
+                st.info(f"Unable to create scatter plot: {str(e)}")
         else:
             st.info("Not enough data for this visualization")
 
