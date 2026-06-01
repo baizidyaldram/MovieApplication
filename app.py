@@ -59,19 +59,19 @@ st.markdown("""
         background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
     }
     
-    /* Spotlight card */
+    /* Spotlight card - SMALLER */
     .spotlight-card {
         background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
         backdrop-filter: blur(10px);
-        border-radius: 1rem;
-        padding: 1rem;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
         text-align: center;
         border: 1px solid rgba(255,255,255,0.2);
         transition: all 0.3s ease;
     }
     
     .spotlight-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-3px);
         background: linear-gradient(135deg, rgba(102,126,234,0.4), rgba(118,75,162,0.4));
     }
     
@@ -80,7 +80,7 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
         border-radius: 0.75rem;
-        padding: 1rem;
+        padding: 0.75rem;
         margin-bottom: 1rem;
         border: 1px solid rgba(255, 255, 255, 0.15);
         transition: all 0.3s ease;
@@ -92,17 +92,22 @@ st.markdown("""
         box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     }
     
-    /* Poster image - MEDIUM SIZE */
-    .poster-image {
-        width: 100px;
-        height: 150px;
+    /* Poster image - SMALLER */
+    .spotlight-poster {
+        width: 80px;
+        height: 120px;
         object-fit: cover;
-        border-radius: 8px;
-        transition: transform 0.3s ease;
+        border-radius: 6px;
+        margin: 0 auto;
+        display: block;
     }
     
-    .poster-image:hover {
-        transform: scale(1.05);
+    /* Recommendation poster - SMALLER */
+    .rec-poster {
+        width: 70px;
+        height: 105px;
+        object-fit: cover;
+        border-radius: 6px;
     }
     
     /* Genre badges */
@@ -110,11 +115,11 @@ st.markdown("""
         display: inline-block;
         background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
-        padding: 0.25rem 0.75rem;
+        padding: 0.2rem 0.6rem;
         border-radius: 20px;
-        font-size: 0.7rem;
+        font-size: 0.65rem;
         font-weight: 500;
-        margin: 0.2rem;
+        margin: 0.15rem;
     }
     
     /* Match score */
@@ -122,9 +127,9 @@ st.markdown("""
         display: inline-block;
         background: linear-gradient(135deg, #10B981, #059669);
         color: white;
-        padding: 0.25rem 0.75rem;
+        padding: 0.2rem 0.6rem;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 600;
     }
     
@@ -134,7 +139,7 @@ st.markdown("""
         color: white;
         border: none;
         border-radius: 50px;
-        padding: 0.6rem 2rem;
+        padding: 0.5rem 1.5rem;
         font-weight: 600;
         transition: all 0.3s ease;
     }
@@ -172,7 +177,7 @@ st.markdown("""
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
         border-radius: 0.75rem;
-        padding: 1rem;
+        padding: 0.75rem;
         text-align: center;
         border: 1px solid rgba(255,255,255,0.2);
     }
@@ -201,9 +206,9 @@ if 'auto_explain' not in st.session_state:
 with st.sidebar:
     st.markdown("""
     <div style="text-align: center; padding: 1rem 0;">
-        <div style="font-size: 3rem;">🎬</div>
-        <div style="font-weight: 800; font-size: 1.2rem;">Movie Recommender</div>
-        <div style="font-size: 0.7rem; opacity: 0.8;">Hybrid AI System</div>
+        <div style="font-size: 2.5rem;">🎬</div>
+        <div style="font-weight: 800; font-size: 1rem;">Movie Recommender</div>
+        <div style="font-size: 0.65rem; opacity: 0.8;">Hybrid AI System</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -257,7 +262,7 @@ def get_movie_poster(movie_title, year=None):
             if data.get("results") and len(data["results"]) > 0:
                 poster_path = data["results"][0].get("poster_path")
                 if poster_path:
-                    return f"https://image.tmdb.org/t/p/w200{poster_path}"
+                    return f"https://image.tmdb.org/t/p/w185{poster_path}"
     except:
         pass
     return None
@@ -274,12 +279,12 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 # ==================== TAB 1: DASHBOARD ====================
 with tab1:
     st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="font-size: 2.5rem; background: linear-gradient(135deg, #fff, #a0a0ff); 
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 2rem; background: linear-gradient(135deg, #fff, #a0a0ff); 
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
             Hybrid Movie Recommendation System
         </h1>
-        <p style="font-size: 1rem; opacity: 0.9;">AI-powered movie discovery with SBERT, SVD, XGBoost &amp; OpenRouter</p>
+        <p style="font-size: 0.9rem; opacity: 0.9;">AI-powered movie discovery with SBERT, SVD, XGBoost &amp; OpenRouter</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -289,9 +294,9 @@ with tab1:
     with col1:
         st.markdown(f"""
         <div class="stat-card">
-            <div style="font-size: 2rem;">🎬</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">{len(movies):,}</div>
-            <div style="font-size: 0.8rem;">Total Movies</div>
+            <div style="font-size: 1.5rem;">🎬</div>
+            <div style="font-size: 1.2rem; font-weight: 700;">{len(movies):,}</div>
+            <div style="font-size: 0.7rem;">Total Movies</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -299,9 +304,9 @@ with tab1:
         avg_rating = movies['vote_average'].mean()
         st.markdown(f"""
         <div class="stat-card">
-            <div style="font-size: 2rem;">⭐</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">{avg_rating:.1f}</div>
-            <div style="font-size: 0.8rem;">Average Rating</div>
+            <div style="font-size: 1.5rem;">⭐</div>
+            <div style="font-size: 1.2rem; font-weight: 700;">{avg_rating:.1f}</div>
+            <div style="font-size: 0.7rem;">Average Rating</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -309,18 +314,18 @@ with tab1:
         unique_genres = 19
         st.markdown(f"""
         <div class="stat-card">
-            <div style="font-size: 2rem;">🎭</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">{unique_genres}</div>
-            <div style="font-size: 0.8rem;">Unique Genres</div>
+            <div style="font-size: 1.5rem;">🎭</div>
+            <div style="font-size: 1.2rem; font-weight: 700;">{unique_genres}</div>
+            <div style="font-size: 0.7rem;">Unique Genres</div>
         </div>
         """, unsafe_allow_html=True)
     
     with col4:
         st.markdown(f"""
         <div class="stat-card">
-            <div style="font-size: 2rem;">🤖</div>
-            <div style="font-size: 1.5rem; font-weight: 700;">AI</div>
-            <div style="font-size: 0.8rem;">Powered by GenAI</div>
+            <div style="font-size: 1.5rem;">🤖</div>
+            <div style="font-size: 1.2rem; font-weight: 700;">AI</div>
+            <div style="font-size: 0.7rem;">Powered by GenAI</div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -336,14 +341,14 @@ with tab1:
         with spotlight_cols[idx]:
             poster = get_movie_poster(movie['title'], movie.get('year', None))
             if poster:
-                st.image(poster, use_container_width=True)
+                st.image(poster, width=100)
             else:
                 st.markdown(f"""
                 <div class="spotlight-card">
-                    <div style="font-size: 3rem;">🎬</div>
-                    <div style="font-weight: 700; margin: 0.5rem 0;">{movie['title'][:30]}</div>
-                    <div>⭐ {movie['vote_average']}/10</div>
-                    <div style="font-size: 0.8rem;">📅 {movie.get('year', 'N/A')}</div>
+                    <div style="font-size: 2rem;">🎬</div>
+                    <div style="font-weight: 700; font-size: 0.8rem;">{movie['title'][:25]}</div>
+                    <div style="font-size: 0.75rem;">⭐ {movie['vote_average']}/10</div>
+                    <div style="font-size: 0.7rem;">📅 {movie.get('year', 'N/A')}</div>
                 </div>
                 """, unsafe_allow_html=True)
     
@@ -371,7 +376,7 @@ with tab1:
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            height=400,
+            height=350,
             font=dict(color="white")
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -387,7 +392,7 @@ with tab1:
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            height=400,
+            height=350,
             font=dict(color="white")
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -445,58 +450,27 @@ with tab2:
     st.markdown("### 📈 Data Visualizations")
     
     # Genre Distribution Bar Chart
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### 🎭 Genre Distribution")
-        all_genres_list_full = []
-        for genres in movies['genres'].dropna().head(1000):
-            if isinstance(genres, list):
-                all_genres_list_full.extend(genres)
-        genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(10)
-        genre_counts_df = pd.DataFrame({
-            'Genre': genre_counts_full.index,
-            'Count': genre_counts_full.values
-        })
-        fig = px.bar(
-            genre_counts_df,
-            x='Count',
-            y='Genre',
-            orientation='h',
-            title="Number of Movies by Genre",
-            color='Count',
-            color_continuous_scale='Purples'
-        )
-        fig.update_layout(height=400, template="plotly_dark")
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.markdown("#### 📊 Vote Count vs Rating")
-        # Sample data for better performance
-        sample_df = filtered_df.head(500).copy()
-        
-        if len(sample_df) > 0 and 'vote_count' in sample_df.columns and 'vote_average' in sample_df.columns:
-            try:
-                fig = px.scatter(
-                    sample_df,
-                    x='vote_count',
-                    y='vote_average',
-                    title="Relationship between Vote Count and Rating",
-                    color_discrete_sequence=['#667eea'],
-                    opacity=0.6
-                )
-                fig.update_layout(
-                    xaxis_title="Vote Count",
-                    yaxis_title="Average Rating",
-                    template="plotly_dark",
-                    height=450
-                )
-                fig.update_xaxis(type="log")
-                st.plotly_chart(fig, use_container_width=True)
-            except Exception as e:
-                st.info(f"Unable to create scatter plot: {str(e)}")
-        else:
-            st.info("Not enough data for this visualization")
+    st.markdown("#### 🎭 Genre Distribution")
+    all_genres_list_full = []
+    for genres in movies['genres'].dropna().head(1000):
+        if isinstance(genres, list):
+            all_genres_list_full.extend(genres)
+    genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(10)
+    genre_counts_df = pd.DataFrame({
+        'Genre': genre_counts_full.index,
+        'Count': genre_counts_full.values
+    })
+    fig = px.bar(
+        genre_counts_df,
+        x='Count',
+        y='Genre',
+        orientation='h',
+        title="Number of Movies by Genre",
+        color='Count',
+        color_continuous_scale='Purples'
+    )
+    fig.update_layout(height=400, template="plotly_dark")
+    st.plotly_chart(fig, use_container_width=True)
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
@@ -530,7 +504,7 @@ with tab3:
     
     if st.session_state.recommendations:
         st.markdown(f"""
-        <div style="text-align: center; margin: 2rem 0;">
+        <div style="text-align: center; margin: 1.5rem 0;">
             <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
         </div>
         """, unsafe_allow_html=True)
@@ -545,22 +519,22 @@ with tab3:
                 
                 with col_post:
                     if poster_url:
-                        st.image(poster_url, use_container_width=True)
+                        st.image(poster_url, width=80)
                     else:
                         st.markdown("""
                         <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                                    width: 100%; aspect-ratio: 2/3; border-radius: 8px; 
-                                    display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                                    width: 80px; height: 120px; border-radius: 6px; 
+                                    display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
                             🎬
                         </div>
                         """, unsafe_allow_html=True)
                 
                 with col_info:
                     st.markdown(f"""
-                    <div style="font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem;">
+                    <div style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem;">
                         {idx + 1}. {rec['title']}
                     </div>
-                    <div style="font-size: 0.85rem;">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
+                    <div style="font-size: 0.75rem;">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
                     """, unsafe_allow_html=True)
                     
                     genres_html = ""
@@ -569,7 +543,7 @@ with tab3:
                     st.markdown(genres_html, unsafe_allow_html=True)
                     
                     st.markdown(f"""
-                    <div style="margin-top: 0.5rem;">
+                    <div style="margin-top: 0.3rem;">
                         <span class="match-score">Match: {rec['match']}%</span>
                     </div>
                     """, unsafe_allow_html=True)
@@ -650,12 +624,12 @@ with tab4:
 with tab5:
     st.markdown("""
     <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="font-size: 4rem;">🎬</div>
+        <div style="font-size: 3rem;">🎬</div>
         <h1 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
             Hybrid Movie Recommendation System
         </h1>
-        <p style="font-size: 1.1rem;">Powered by Generative AI</p>
+        <p style="font-size: 1rem;">Powered by Generative AI</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -720,7 +694,7 @@ with tab5:
     with col1:
         st.markdown("""
         <div class="metric-card">
-            <div style="font-size: 1.5rem;">📊</div>
+            <div style="font-size: 1.2rem;">📊</div>
             <div style="font-weight: 700;">Content-Based</div>
             <div>Accuracy: 72%</div>
             <div>Precision: 0.70</div>
@@ -730,7 +704,7 @@ with tab5:
     with col2:
         st.markdown("""
         <div class="metric-card">
-            <div style="font-size: 1.5rem;">🤖</div>
+            <div style="font-size: 1.2rem;">🤖</div>
             <div style="font-weight: 700;">Hybrid (Current)</div>
             <div>Accuracy: 85%+</div>
             <div>Precision: 0.83</div>
@@ -740,7 +714,7 @@ with tab5:
     with col3:
         st.markdown("""
         <div class="metric-card">
-            <div style="font-size: 1.5rem;">📈</div>
+            <div style="font-size: 1.2rem;">📈</div>
             <div style="font-weight: 700;">Improvement</div>
             <div>+18% Accuracy</div>
             <div>+19% Precision</div>
@@ -751,9 +725,9 @@ with tab5:
 st.markdown("""
 <div class="footer">
     <div>🎬 Hybrid Movie Recommendation System using GenAI</div>
-    <div style="font-size: 0.7rem; margin-top: 0.5rem;">
+    <div style="font-size: 0.65rem; margin-top: 0.5rem;">
         Powered by SBERT, SVD, XGBoost &amp; OpenRouter AI | Movie posters by TMDB
     </div>
-    <div style="font-size: 0.7rem;">2024 - Built with Streamlit</div>
+    <div style="font-size: 0.65rem;">2024 - Built with Streamlit</div>
 </div>
 """, unsafe_allow_html=True)
