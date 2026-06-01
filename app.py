@@ -487,33 +487,27 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 📅 Rating Distribution")
-        fig = px.box(
-            filtered_df,
+        st.markdown("#### 📊 Vote Count vs Rating")
+        # Sample data for better performance
+        sample_df = filtered_df.head(500).copy()
+        sample_df['vote_count_log'] = np.log10(sample_df['vote_count'] + 1)
+        
+        fig = px.scatter(
+            sample_df,
+            x='vote_count',
             y='vote_average',
-            title="Rating Distribution Box Plot"
+            title="Relationship between Vote Count and Rating",
+            color_discrete_sequence=['#667eea'],
+            opacity=0.6
         )
-        fig.update_layout(template="plotly_dark", height=400)
+        fig.update_layout(
+            xaxis_title="Vote Count (Log Scale)",
+            yaxis_title="Average Rating",
+            template="plotly_dark",
+            height=450
+        )
+        fig.update_xaxis(type="log")
         st.plotly_chart(fig, use_container_width=True)
-    
-    # Vote Count vs Rating
-    st.markdown("#### 📊 Vote Count vs Average Rating")
-    fig = px.scatter(
-        filtered_df.head(500),
-        x='vote_count',
-        y='vote_average',
-        title="Relationship between Vote Count and Rating",
-        trendline="ols",
-        color_discrete_sequence=['#667eea']
-    )
-    fig.update_layout(
-        xaxis_title="Vote Count (Log Scale)",
-        yaxis_title="Average Rating",
-        template="plotly_dark",
-        height=450
-    )
-    fig.update_xaxis(type="log")
-    st.plotly_chart(fig, use_container_width=True)
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
