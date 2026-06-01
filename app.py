@@ -245,65 +245,6 @@ if 'recommendation_type' not in st.session_state:
     st.session_state.recommendation_type = None
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
-
-# Helper function to extract genres from various formats
-def extract_genres(genres_val):
-    """Extract individual genres from various formats"""
-    if genres_val is None or pd.isna(genres_val) or genres_val == '':
-        return []
-    
-    # If it's already a list
-    if isinstance(genres_val, list):
-        return genres_val
-    
-    # Convert to string
-    genres_str = str(genres_val)
-    
-    # Common genre keywords for space-separated format
-    genre_keywords = ['Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Sci-Fi', 'SciFi',
-                      'Comedy', 'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 
-                      'Mystery', 'Animation', 'Family', 'Documentary', 'History', 
-                      'War', 'Western', 'Music', 'Musical', 'Biography', 'Sport', 'Superhero']
-    
-    # Try common separators first
-    for sep in ['|', ',', '/', ';', '&']:
-        if sep in genres_str:
-            results = []
-            for g in genres_str.split(sep):
-                g = g.strip()
-                if g and len(g) > 1:
-                    results.append(g)
-            if results:
-                return results
-    
-    # Handle space-separated genres
-    words = genres_str.split()
-    results = []
-    for word in words:
-        word_clean = word.strip()
-        # Remove punctuation
-        word_clean = word_clean.rstrip(',').rstrip('.').rstrip(';')
-        # Check if word matches a genre keyword
-        for genre in genre_keywords:
-            if word_clean.lower() == genre.lower():
-                results.append(genre)
-                break
-            elif word_clean.lower() in genre.lower() and len(word_clean) > 3:
-                if word_clean not in results:
-                    results.append(word_clean)
-                break
-    
-    # If we have results from keyword matching, return them
-    if results:
-        return results
-    
-    # If the string is a single genre name
-    if len(genres_str) > 2 and len(genres_str) < 30:
-        return [genres_str]
-    
-    # Fallback: return empty list
-    return []
-
 # Sidebar
 with st.sidebar:
     st.markdown("""
@@ -330,7 +271,57 @@ with st.sidebar:
         
         if "TMDB_API_KEY" in st.secrets:
             st.success("✅ TMDB API Ready")
+    # Helper function to extract genres (NOW AFTER IMPORTS)
+def extract_genres(genres_val):
+    """Extract individual genres from various formats"""
+    if genres_val is None or pd.isna(genres_val) or genres_val == '':
+        return []
     
+    # If it's already a list
+    if isinstance(genres_val, list):
+        return genres_val
+    
+    # Convert to string
+    genres_str = str(genres_val)
+    
+    # Common genre keywords
+    genre_keywords = ['Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Sci-Fi', 'SciFi',
+                      'Comedy', 'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 
+                      'Mystery', 'Animation', 'Family', 'Documentary', 'History', 
+                      'War', 'Western', 'Music', 'Musical', 'Biography', 'Sport', 'Superhero']
+    
+    # Try common separators
+    for sep in ['|', ',', '/', ';', '&']:
+        if sep in genres_str:
+            results = []
+            for g in genres_str.split(sep):
+                g = g.strip()
+                if g and len(g) > 1:
+                    results.append(g)
+            if results:
+                return results
+    
+    # Handle space-separated genres
+    words = genres_str.split()
+    results = []
+    for word in words:
+        word_clean = word.strip().rstrip(',').rstrip('.').rstrip(';')
+        for genre in genre_keywords:
+            if word_clean.lower() == genre.lower():
+                results.append(genre)
+                break
+            elif word_clean.lower() in genre.lower() and len(word_clean) > 3:
+                if word_clean not in results:
+                    results.append(word_clean)
+                break
+    
+    if results:
+        return results
+    
+    if len(genres_str) > 2 and len(genres_str) < 30:
+        return [genres_str]
+    
+    return []
     # Settings
     st.markdown("---")
     st.session_state.auto_explain = st.checkbox("🤖 Auto AI Explanations", value=True)
