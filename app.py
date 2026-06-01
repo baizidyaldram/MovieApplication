@@ -4,6 +4,42 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime
 
+import requests  # Add this import if not already there
+
+# TMDB Poster Functions (add after all imports)
+def get_tmdb_poster(movie_title, year=None):
+    """Fetch movie poster URL from TMDB API"""
+    try:
+        if "TMDB_API_KEY" not in st.secrets:
+            return None
+        
+        api_key = st.secrets["TMDB_API_KEY"]
+        
+        # Search for the movie
+        search_url = "https://api.themoviedb.org/3/search/movie"
+        params = {
+            "api_key": api_key,
+            "query": movie_title,
+            "language": "en-US"
+        }
+        if year and year != "N/A":
+            params["year"] = year
+        
+        response = requests.get(search_url, params=params, timeout=5)
+        data = response.json()
+        
+        if data.get("results") and len(data["results"]) > 0:
+            poster_path = data["results"][0].get("poster_path")
+            if poster_path:
+                return f"https://image.tmdb.org/t/p/w500{poster_path}"
+    except Exception as e:
+        print(f"TMDB error for {movie_title}: {e}")
+    
+    return None
+
+@st.cache_data(ttl=86400)  # Cache for 24 hours
+def get_cached_movie_poster(movie_title, year):
+    return get_tmdb_poster(movie_title, year)
 # Page configuration
 st.set_page_config(
     page_title="Hybrid Movie Recommendation System",
