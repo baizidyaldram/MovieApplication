@@ -416,25 +416,53 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
     
-    # ============ REMOVED DATASET PREVIEW, ADDED QUICK GENRE PICKER ============
+     # ============ QUICK GENRE DISCOVERY (FIXED) ============
     st.markdown("---")
     st.markdown("### 🎯 Quick Genre Discovery")
     st.markdown("Pick a genre to instantly see top-rated movies")
     
-    # Extract unique genres from dataset
+    # Extract unique genres from dataset with better error handling
     all_genres_list = []
-    for g in movies['genres'].dropna().head(1000):
-        if isinstance(g, list):
-            all_genres_list.extend(g)
+    try:
+        # Try different approaches to extract genres
+        for idx in range(min(len(movies), 1000)):
+            genres_val = movies.iloc[idx].get('genres')
+            if genres_val is not None:
+                if isinstance(genres_val, list):
+                    all_genres_list.extend(genres_val)
+                elif isinstance(genres_val, str):
+                    # Handle string genres like "Action|Comedy|Drama"
+                    if '|' in genres_val:
+                        all_genres_list.extend(genres_val.split('|'))
+                    elif ',' in genres_val:
+                        all_genres_list.extend([g.strip() for g in genres_val.split(',')])
+                    else:
+                        all_genres_list.append(genres_val)
+    except Exception as e:
+        st.warning(f"Could not extract genres: {e}")
+    
+    # Remove duplicates and sort
     unique_genres_list = sorted(set(all_genres_list))
+    
+    # Filter out empty strings and common non-genre values
+    unique_genres_list = [g for g in unique_genres_list if g and len(g) > 1 and g not in ['', ' ', 'None', 'nan', 'Unknown']]
+    
+    # Fallback genres if extraction failed
+    if not unique_genres_list:
+        unique_genres_list = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 
+                              'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 
+                              'Mystery', 'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 
+                              'War', 'Western']
+        st.info("Using default genre list")
     
     # Create genre selector with better styling
     col_genre1, col_genre2, col_genre3 = st.columns([1, 2, 1])
     with col_genre2:
         selected_genre_quick = st.selectbox(
             "🎭 Choose a genre",
-            ["-- Select a genre --"] + unique_genres_list,
-            index=0
+            options=["-- Select a genre --"] + unique_genres_list,
+            index=0,
+            help="Select a genre to see top-rated movies"
         )
     
     if selected_genre_quick and selected_genre_quick != "-- Select a genre --":
