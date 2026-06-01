@@ -1,12 +1,12 @@
 from typing import Optional, List
 from openai import OpenAI
 import streamlit as st
-from typing import Optional
 
 from src.recommender import (
     movie_to_idx,
     movies,
-    content_sim
+    content_sim,
+    fuzzy_find_movie
 )
 
 # Global client variable
@@ -143,15 +143,15 @@ def batch_explain_movies(source: str, targets: list) -> dict:
     for target in targets:
         explanations[target] = explain_movie(source, target)
     return explanations
-# Add to src/llm_explainer.py (at the very end)
+
+
+# ==================== TEXT-BASED EXPLANATION FUNCTIONS ====================
 
 def explain_movie_by_query(user_query: str, recommended_movie: str) -> str:
     """
     Generate an AI explanation for why a movie matches a user's text query.
     """
     # Check if recommended movie exists
-    from src.recommender import fuzzy_find_movie, movie_to_idx, movies
-    
     canonical = fuzzy_find_movie(recommended_movie)
     if canonical is None:
         return f"Movie '{recommended_movie}' not found in database"
@@ -180,21 +180,19 @@ Explain in 2-3 sentences why this movie is a good match for what the user descri
 Focus on how the movie's plot, genre, tone, or style matches the user's request.
 Be conversational, enthusiastic, and helpful.
 
-Example good response: "This movie is perfect for you because it combines thrilling action with clever comedy. The main character's witty one-liners and the fast-paced fight scenes match exactly what you're looking for. Plus, it has an impressive 8.5/10 rating from critics!"
-
 Keep it concise and engaging."""
     
     try:
         client = get_client()
         if client is None:
-            return self._get_fallback_text_explanation(user_query, movie_title, genres_str, movie_rating)
+            return _get_fallback_text_explanation(user_query, movie_title, genres_str, movie_rating)
         
         response = client.chat.completions.create(
             model=MODEL,
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a enthusiastic movie recommendation expert who gives concise, helpful explanations."
+                    "content": "You are an enthusiastic movie recommendation expert who gives concise, helpful explanations."
                 },
                 {
                     "role": "user",
@@ -209,14 +207,13 @@ Keep it concise and engaging."""
         return explanation
     
     except Exception as e:
-        return self._get_fallback_text_explanation(user_query, movie_title, genres_str, movie_rating)
+        return _get_fallback_text_explanation(user_query, movie_title, genres_str, movie_rating)
 
 
 def _get_fallback_text_explanation(user_query: str, movie_title: str, genres: str, rating: float) -> str:
     """Generate fallback explanation without API call"""
     # Simple keyword matching for fallback
     query_lower = user_query.lower()
-    movie_lower = movie_title.lower()
     
     explanations = []
     
@@ -232,9 +229,17 @@ def _get_fallback_text_explanation(user_query: str, movie_title: str, genres: st
     if 'scary' in query_lower or 'horror' in query_lower:
         if 'horror' in genres.lower():
             explanations.append("• Delivers the thrills and scares you want")
-    if 'high rating' in query_lower or 'best' in query_lower:
+    if 'thriller' in query_lower:
+        if 'thriller' in genres.lower():
+            explanations.append("• Keeps you on the edge of your seat with suspenseful moments")
+    if 'drama' in query_lower:
+        if 'drama' in genres.lower():
+            explanations.append("• Offers deep emotional storytelling and character development")
+    if 'high rating' in query_lower or 'best' in query_lower or 'top' in query_lower:
         if rating >= 7.5:
             explanations.append(f"• Critically acclaimed with {rating}/10 rating")
+    elif rating >= 8.0:
+        explanations.append(f"• Highly rated at {rating}/10 by audiences")
     
     if explanations:
         return f"📽️ Why {movie_title} matches your request:\n\n" + "\n".join(explanations[:3])
