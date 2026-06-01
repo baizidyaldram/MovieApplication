@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for beautiful UI
+# Custom CSS for better visibility in both light and dark mode
 st.markdown("""
 <style>
     /* Import Google Fonts */
@@ -27,39 +27,46 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
+    /* Main container - Dark theme with gradient */
+    .stApp {
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    }
+    
     /* Glass morphism cards */
     .glass-card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(30, 30, 50, 0.8);
         backdrop-filter: blur(10px);
         border-radius: 1rem;
         padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         transition: all 0.3s ease;
+        color: #ffffff;
     }
     
     .glass-card:hover {
         transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        background: rgba(40, 40, 70, 0.9);
+        border-color: rgba(102, 126, 234, 0.5);
     }
     
-    /* Stat cards */
+    /* Stat cards - Dark theme */
     .stat-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.15), rgba(255,255,255,0.05));
+        background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
         backdrop-filter: blur(10px);
         border-radius: 1rem;
-        padding: 1.5rem;
+        padding: 1rem;
         text-align: center;
-        border: 1px solid rgba(255,255,255,0.2);
+        color: white;
         transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
     }
     
     .stat-card:hover {
         transform: translateY(-5px);
-        background: linear-gradient(135deg, rgba(255,255,255,0.25), rgba(255,255,255,0.1));
+        background: linear-gradient(135deg, rgba(102,126,234,0.35), rgba(118,75,162,0.35));
     }
     
-    /* Spotlight card - SMALLER */
+    /* Spotlight card */
     .spotlight-card {
         background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
         backdrop-filter: blur(10px);
@@ -68,6 +75,7 @@ st.markdown("""
         text-align: center;
         border: 1px solid rgba(255,255,255,0.2);
         transition: all 0.3s ease;
+        color: white;
     }
     
     .spotlight-card:hover {
@@ -75,39 +83,68 @@ st.markdown("""
         background: linear-gradient(135deg, rgba(102,126,234,0.4), rgba(118,75,162,0.4));
     }
     
-    /* Movie card */
-    .movie-card {
-        background: rgba(255, 255, 255, 0.1);
+    /* Tab styling - BIGGER and VISIBLE */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+        background: rgba(20, 20, 40, 0.9);
         backdrop-filter: blur(10px);
-        border-radius: 0.75rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 60px;
+        padding: 10px 15px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 50px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        color: #d0d0e0 !important;
+        background: transparent;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: rgba(102, 126, 234, 0.2);
+        color: white !important;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+    }
+    
+    /* Headers - Always white for dark theme */
+    h1, h2, h3, h4, h5, h6, p, li, span, label {
+        color: #ffffff !important;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: rgba(20, 20, 40, 0.95);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #e0e0f0 !important;
+    }
+    
+    /* Button styling */
+    .stButton > button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 0.5rem 1.5rem;
+        font-weight: 600;
         transition: all 0.3s ease;
     }
     
-    .movie-card:hover {
-        transform: translateY(-3px);
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    }
-    
-    /* Poster image - SMALLER */
-    .spotlight-poster {
-        width: 80px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 6px;
-        margin: 0 auto;
-        display: block;
-    }
-    
-    /* Recommendation poster - SMALLER */
-    .rec-poster {
-        width: 70px;
-        height: 105px;
-        object-fit: cover;
-        border-radius: 6px;
+    .stButton > button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(102,126,234,0.3);
     }
     
     /* Genre badges */
@@ -133,46 +170,7 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* Button styling */
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 0.5rem 1.5rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 20px rgba(102,126,234,0.3);
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(255,255,255,0.1);
-        backdrop-filter: blur(10px);
-        border-radius: 50px;
-        padding: 8px;
-        margin-bottom: 2rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 40px;
-        padding: 8px 24px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        color: white !important;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white !important;
-    }
-    
-    /* Metric cards */
+    /* Metric cards text */
     .metric-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -180,16 +178,36 @@ st.markdown("""
         padding: 0.75rem;
         text-align: center;
         border: 1px solid rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    /* Dataframe styling */
+    .dataframe {
+        background: rgba(20, 20, 40, 0.8);
+        color: white !important;
     }
     
     /* Footer */
     .footer {
         text-align: center;
         padding: 2rem;
-        color: rgba(255,255,255,0.7);
-        background: rgba(0,0,0,0.2);
+        color: #a0a0c0;
+        background: rgba(20, 20, 40, 0.5);
         border-radius: 1rem;
         margin-top: 2rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: rgba(30, 30, 50, 0.8);
+        border-radius: 0.5rem;
+        color: white !important;
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox label, .stSlider label {
+        color: #e0e0f0 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -267,7 +285,7 @@ def get_movie_poster(movie_title, year=None):
         pass
     return None
 
-# Create tabs
+# Create tabs - BIGGER and VISIBLE
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🎯 DASHBOARD",
     "📊 EXPLORE DATA",
@@ -280,11 +298,11 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
 with tab1:
     st.markdown("""
     <div style="text-align: center; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 2rem; background: linear-gradient(135deg, #fff, #a0a0ff); 
+        <h1 style="font-size: 2rem; background: linear-gradient(135deg, #667eea, #764ba2); 
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
             Hybrid Movie Recommendation System
         </h1>
-        <p style="font-size: 0.9rem; opacity: 0.9;">AI-powered movie discovery with SBERT, SVD, XGBoost &amp; OpenRouter</p>
+        <p style="font-size: 0.9rem;">AI-powered movie discovery with SBERT, SVD, XGBoost &amp; OpenRouter</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -352,50 +370,19 @@ with tab1:
                 </div>
                 """, unsafe_allow_html=True)
     
-    # Genre Distribution and Rating Distribution
+    # Dataset Preview
     st.markdown("---")
-    col1, col2 = st.columns(2)
+    st.markdown("### 📊 Dataset Preview")
     
-    with col1:
-        st.markdown("### 🎭 Genre Distribution")
-        # Extract genres
-        all_genres = []
-        for genres in movies['genres'].head(1000):
-            if isinstance(genres, list):
-                all_genres.extend(genres)
-        genre_counts = pd.Series(all_genres).value_counts().head(10)
-        
-        fig = px.pie(
-            values=genre_counts.values,
-            names=genre_counts.index,
-            title="Top 10 Movie Genres",
-            color_discrete_sequence=px.colors.sequential.Purples_r,
-            hole=0.4
-        )
-        fig.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=350,
-            font=dict(color="white")
-        )
-        st.plotly_chart(fig, use_container_width=True)
+    display_cols = ['title', 'year', 'vote_average', 'popularity']
+    available_cols = [col for col in display_cols if col in movies.columns]
     
-    with col2:
-        st.markdown("### 📈 Rating Distribution")
-        fig = px.histogram(
-            movies, x='vote_average', nbins=30,
-            title="Movie Rating Distribution",
-            color_discrete_sequence=['#667eea']
+    if available_cols:
+        st.dataframe(
+            movies[available_cols].head(20),
+            use_container_width=True,
+            hide_index=True
         )
-        fig.update_layout(
-            template="plotly_dark",
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=350,
-            font=dict(color="white")
-        )
-        st.plotly_chart(fig, use_container_width=True)
 
 # ==================== TAB 2: EXPLORE DATA ====================
 with tab2:
@@ -469,7 +456,7 @@ with tab2:
         color='Count',
         color_continuous_scale='Purples'
     )
-    fig.update_layout(height=400, template="plotly_dark")
+    fig.update_layout(height=400, template="plotly_dark", font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
