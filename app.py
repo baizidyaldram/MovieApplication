@@ -568,29 +568,113 @@ with tab2:
     st.markdown("---")
     st.markdown("### 📈 Data Visualizations")
     
-    # Genre Distribution Bar Chart
-    st.markdown("#### 🎭 Genre Distribution")
-    all_genres_list_full = []
-    for genres in movies['genres'].dropna().head(1000):
-        if isinstance(genres, list):
-            all_genres_list_full.extend(genres)
-    genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(10)
-    genre_counts_df = pd.DataFrame({
-        'Genre': genre_counts_full.index,
-        'Count': genre_counts_full.values
-    })
-    fig = px.bar(
-        genre_counts_df,
-        x='Count',
-        y='Genre',
-        orientation='h',
-        title="Number of Movies by Genre",
-        color='Count',
-        color_continuous_scale='Purples'
-    )
-    fig.update_layout(height=400, template="plotly_dark", font=dict(color="white"))
-    st.plotly_chart(fig, use_container_width=True)
-
+    # Create tabs for different visualizations
+    viz_tab1, viz_tab2, viz_tab3 = st.tabs(["🎭 Genre Distribution", "⭐ Rating Distribution", "📅 Year Trend"])
+    
+    with viz_tab1:
+        st.markdown("#### Most Popular Genres")
+        
+        # Extract genres with better handling
+        all_genres_list_full = []
+        for idx in range(min(len(movies), 2000)):
+            genres_val = movies.iloc[idx].get('genres')
+            if genres_val is not None:
+                if isinstance(genres_val, list):
+                    all_genres_list_full.extend(genres_val)
+                elif isinstance(genres_val, str):
+                    if '|' in genres_val:
+                        all_genres_list_full.extend(genres_val.split('|'))
+                    elif ',' in genres_val:
+                        all_genres_list_full.extend([g.strip() for g in genres_val.split(',')])
+        
+        if all_genres_list_full:
+            genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
+            genre_counts_df = pd.DataFrame({
+                'Genre': genre_counts_full.index,
+                'Count': genre_counts_full.values
+            })
+            
+            fig = px.bar(
+                genre_counts_df,
+                x='Count',
+                y='Genre',
+                orientation='h',
+                title="Number of Movies by Genre",
+                color='Count',
+                color_continuous_scale='Viridis',
+                text='Count'
+            )
+            fig.update_traces(textposition='outside')
+            fig.update_layout(
+                height=500, 
+                template="plotly_dark", 
+                font=dict(color="white"),
+                xaxis_title="Number of Movies",
+                yaxis_title="Genre",
+                showlegend=False
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Genre data not available in the dataset")
+    
+    with viz_tab2:
+        st.markdown("#### Rating Distribution")
+        
+        if 'vote_average' in movies.columns:
+            fig2 = px.histogram(
+                movies,
+                x='vote_average',
+                nbins=30,
+                title="Distribution of Movie Ratings",
+                color_discrete_sequence=['#667eea'],
+                labels={'vote_average': 'Rating (0-10)', 'count': 'Number of Movies'}
+            )
+            fig2.update_layout(
+                height=400,
+                template="plotly_dark",
+                font=dict(color="white"),
+                bargap=0.1
+            )
+            fig2.add_vline(x=movies['vote_average'].mean(), line_dash="dash", line_color="red", 
+                          annotation_text=f"Mean: {movies['vote_average'].mean():.1f}")
+            st.plotly_chart(fig2, use_container_width=True)
+            
+            # Rating stats
+            col_r1, col_r2, col_r3, col_r4 = st.columns(4)
+            with col_r1:
+                st.metric("Average Rating", f"{movies['vote_average'].mean():.1f}")
+            with col_r2:
+                st.metric("Median Rating", f"{movies['vote_average'].median():.1f}")
+            with col_r3:
+                st.metric("Highest Rating", f"{movies['vote_average'].max():.1f}")
+            with col_r4:
+                st.metric("Lowest Rating", f"{movies['vote_average'].min():.1f}")
+    
+    with viz_tab3:
+        st.markdown("#### Movies Over the Years")
+        
+        if 'year' in movies.columns:
+            # Filter valid years
+            year_data = movies[movies['year'] > 1900].copy()
+            year_counts = year_data['year'].value_counts().sort_index()
+            
+            fig3 = px.line(
+                x=year_counts.index,
+                y=year_counts.values,
+                title="Number of Movies Released by Year",
+                labels={'x': 'Year', 'y': 'Number of Movies'},
+                markers=True
+            )
+            fig3.update_layout(
+                height=400,
+                template="plotly_dark",
+                font=dict(color="white")
+            )
+            fig3.update_traces(line_color='#764ba2', line_width=2, marker_size=4)
+            st.plotly_chart(fig3, use_container_width=True)
+            
+            # Year range info
+            st.caption(f"📅 Movies in dataset range from {int(year_data['year'].min())} to {int(year_data['year'].max())}")
 # ==================== TAB 3: RECOMMENDATIONS (TEXT-BASED FIRST) ====================
 with tab3:
     st.markdown("### 🎬 AI Movie Recommendations")
