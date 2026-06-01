@@ -1,13 +1,16 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import streamlit as st
+import pandas as pd
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import requests
 from datetime import datetime
 import random
-import time  # ADD THIS IMPORT
+import time
 
 # Page configuration
 st.set_page_config(
@@ -17,10 +20,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for better visibility in both light and dark mode
+# Custom CSS for better visibility
 st.markdown("""
 <style>
-    /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
     
@@ -28,12 +30,10 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* Main container - Dark theme with gradient */
     .stApp {
         background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     }
     
-    /* Glass morphism cards */
     .glass-card {
         background: rgba(30, 30, 50, 0.8);
         backdrop-filter: blur(10px);
@@ -50,7 +50,6 @@ st.markdown("""
         border-color: rgba(102, 126, 234, 0.5);
     }
     
-    /* Stat cards - Dark theme */
     .stat-card {
         background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
         backdrop-filter: blur(10px);
@@ -67,7 +66,6 @@ st.markdown("""
         background: linear-gradient(135deg, rgba(102,126,234,0.35), rgba(118,75,162,0.35));
     }
     
-    /* Spotlight card - LARGER */
     .spotlight-card {
         background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
         backdrop-filter: blur(10px);
@@ -86,7 +84,6 @@ st.markdown("""
         box-shadow: 0 10px 30px rgba(102,126,234,0.3);
     }
     
-    /* Tab styling - BIGGER and VISIBLE */
     .stTabs [data-baseweb="tab-list"] {
         gap: 12px;
         background: rgba(20, 20, 40, 0.9);
@@ -118,12 +115,10 @@ st.markdown("""
         box-shadow: 0 5px 15px rgba(102,126,234,0.3);
     }
     
-    /* Headers - Always white for dark theme */
     h1, h2, h3, h4, h5, h6, p, li, span, label {
         color: #ffffff !important;
     }
     
-    /* FIXED: Main Title with solid background for visibility */
     .main-title-container {
         background: linear-gradient(135deg, rgba(15, 12, 41, 0.9), rgba(48, 43, 99, 0.9));
         backdrop-filter: blur(15px);
@@ -152,7 +147,6 @@ st.markdown("""
         opacity: 0.9;
     }
     
-    /* Sidebar styling */
     [data-testid="stSidebar"] {
         background: rgba(20, 20, 40, 0.95);
         backdrop-filter: blur(10px);
@@ -163,7 +157,6 @@ st.markdown("""
         color: #e0e0f0 !important;
     }
     
-    /* Button styling */
     .stButton > button {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
@@ -179,7 +172,6 @@ st.markdown("""
         box-shadow: 0 10px 20px rgba(102,126,234,0.3);
     }
     
-    /* Genre badges */
     .genre-badge {
         display: inline-block;
         background: linear-gradient(135deg, #667eea, #764ba2);
@@ -191,7 +183,6 @@ st.markdown("""
         margin: 0.15rem;
     }
     
-    /* Match score */
     .match-score {
         display: inline-block;
         background: linear-gradient(135deg, #10B981, #059669);
@@ -202,7 +193,6 @@ st.markdown("""
         font-weight: 600;
     }
     
-    /* Metric cards text */
     .metric-card {
         background: rgba(255,255,255,0.1);
         backdrop-filter: blur(10px);
@@ -213,13 +203,11 @@ st.markdown("""
         color: white;
     }
     
-    /* Dataframe styling */
     .dataframe {
         background: rgba(20, 20, 40, 0.8);
         color: white !important;
     }
     
-    /* Footer */
     .footer {
         text-align: center;
         padding: 2rem;
@@ -230,25 +218,14 @@ st.markdown("""
         border: 1px solid rgba(255,255,255,0.1);
     }
     
-    /* Expander styling */
     .streamlit-expanderHeader {
         background: rgba(30, 30, 50, 0.8);
         border-radius: 0.5rem;
         color: white !important;
     }
     
-    /* Selectbox styling */
     .stSelectbox label, .stSlider label {
         color: #e0e0f0 !important;
-    }
-    
-    /* Quick genre picker styling */
-    .genre-picker-card {
-        background: rgba(30, 30, 50, 0.6);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        border: 1px solid rgba(255,255,255,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -268,6 +245,64 @@ if 'recommendation_type' not in st.session_state:
     st.session_state.recommendation_type = None
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
+
+# Helper function to extract genres from various formats
+def extract_genres(genres_val):
+    """Extract individual genres from various formats"""
+    if genres_val is None or pd.isna(genres_val) or genres_val == '':
+        return []
+    
+    # If it's already a list
+    if isinstance(genres_val, list):
+        return genres_val
+    
+    # Convert to string
+    genres_str = str(genres_val)
+    
+    # Common genre keywords for space-separated format
+    genre_keywords = ['Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Sci-Fi', 'SciFi',
+                      'Comedy', 'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 
+                      'Mystery', 'Animation', 'Family', 'Documentary', 'History', 
+                      'War', 'Western', 'Music', 'Musical', 'Biography', 'Sport', 'Superhero']
+    
+    # Try common separators first
+    for sep in ['|', ',', '/', ';', '&']:
+        if sep in genres_str:
+            results = []
+            for g in genres_str.split(sep):
+                g = g.strip()
+                if g and len(g) > 1:
+                    results.append(g)
+            if results:
+                return results
+    
+    # Handle space-separated genres
+    words = genres_str.split()
+    results = []
+    for word in words:
+        word_clean = word.strip()
+        # Remove punctuation
+        word_clean = word_clean.rstrip(',').rstrip('.').rstrip(';')
+        # Check if word matches a genre keyword
+        for genre in genre_keywords:
+            if word_clean.lower() == genre.lower():
+                results.append(genre)
+                break
+            elif word_clean.lower() in genre.lower() and len(word_clean) > 3:
+                if word_clean not in results:
+                    results.append(word_clean)
+                break
+    
+    # If we have results from keyword matching, return them
+    if results:
+        return results
+    
+    # If the string is a single genre name
+    if len(genres_str) > 2 and len(genres_str) < 30:
+        return [genres_str]
+    
+    # Fallback: return empty list
+    return []
 
 # Sidebar
 with st.sidebar:
@@ -303,9 +338,8 @@ with st.sidebar:
     # System Stats
     st.markdown("---")
     from src.recommender import movies
-    if movies is not None:
+    if movies is not None and len(movies) > 0:
         st.metric("🎬 Total Movies", len(movies))
-        st.metric("🎭 Unique Genres", "19")
         st.metric("⭐ Avg Rating", f"{movies['vote_average'].mean():.1f}")
 
 # Load data
@@ -315,7 +349,7 @@ from src.llm_explainer import explain_movie, initialize_llm, explain_movie_by_qu
 if st.session_state.openrouter_api_key:
     initialize_llm(st.session_state.openrouter_api_key)
 
-# TMDB Poster function with larger size option
+# TMDB Poster function
 def get_movie_poster(movie_title, year=None, size="w342"):
     try:
         if "TMDB_API_KEY" in st.secrets:
@@ -375,11 +409,10 @@ with tab1:
         """, unsafe_allow_html=True)
     
     with col3:
-        unique_genres = 19
         st.markdown(f"""
         <div class="stat-card">
             <div style="font-size: 1.8rem;">🎭</div>
-            <div style="font-size: 1.4rem; font-weight: 700;">{unique_genres}</div>
+            <div style="font-size: 1.4rem; font-weight: 700;">19</div>
             <div style="font-size: 0.8rem;">Unique Genres</div>
         </div>
         """, unsafe_allow_html=True)
@@ -427,32 +460,20 @@ with tab1:
     st.markdown("### 🎯 Quick Genre Discovery")
     st.markdown("Pick a genre to instantly see top-rated movies")
     
+    # Extract unique genres using the helper function
     all_genres_list = []
-    try:
-        for idx in range(min(len(movies), 1000)):
-            genres_val = movies.iloc[idx].get('genres')
-            if genres_val is not None:
-                if isinstance(genres_val, list):
-                    all_genres_list.extend(genres_val)
-                elif isinstance(genres_val, str):
-                    if '|' in genres_val:
-                        all_genres_list.extend(genres_val.split('|'))
-                    elif ',' in genres_val:
-                        all_genres_list.extend([g.strip() for g in genres_val.split(',')])
-                    else:
-                        all_genres_list.append(genres_val)
-    except Exception as e:
-        st.warning(f"Could not extract genres: {e}")
+    for idx in range(min(len(movies), 2000)):
+        genres_val = movies.iloc[idx].get('genres')
+        extracted = extract_genres(genres_val)
+        all_genres_list.extend(extracted)
     
     unique_genres_list = sorted(set(all_genres_list))
-    unique_genres_list = [g for g in unique_genres_list if g and len(g) > 1 and g not in ['', ' ', 'None', 'nan', 'Unknown']]
+    unique_genres_list = [g for g in unique_genres_list if g and len(g) > 1 and g not in ['', ' ', 'None', 'nan', 'Unknown', 'and', 'the', 'of']]
     
     if not unique_genres_list:
         unique_genres_list = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 
                               'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 
-                              'Mystery', 'Romance', 'Science Fiction', 'TV Movie', 'Thriller', 
-                              'War', 'Western']
-        st.info("Using default genre list")
+                              'Mystery', 'Romance', 'Science Fiction', 'Thriller', 'War', 'Western']
     
     col_genre1, col_genre2, col_genre3 = st.columns([1, 2, 1])
     with col_genre2:
@@ -464,11 +485,16 @@ with tab1:
         )
     
     if selected_genre_quick and selected_genre_quick != "-- Select a genre --":
-        genre_movies = movies[
-            movies['genres'].apply(lambda x: selected_genre_quick in x if isinstance(x, list) else False)
-        ].sort_values('vote_average', ascending=False).head(8)
+        # Filter movies by selected genre
+        genre_filtered = []
+        for idx, row in movies.iterrows():
+            genres_val = row.get('genres')
+            extracted = extract_genres(genres_val)
+            if selected_genre_quick in extracted:
+                genre_filtered.append(row)
         
-        if len(genre_movies) > 0:
+        if genre_filtered:
+            genre_movies = pd.DataFrame(genre_filtered).sort_values('vote_average', ascending=False).head(8)
             st.markdown(f"#### Top {len(genre_movies)} movies in **{selected_genre_quick}**")
             
             for row in range(0, len(genre_movies), 4):
@@ -506,7 +532,6 @@ with tab1:
             st.balloons()
             st.success(f"### 🎬 **{random_movie['title']}**")
             st.caption(f"⭐ {random_movie['vote_average']}/10 | 📅 {random_movie.get('year', 'N/A')}")
-            
             random_poster = get_movie_poster(random_movie['title'], random_movie.get('year', None), size="w342")
             if random_poster:
                 st.image(random_poster, width=200)
@@ -516,6 +541,7 @@ with tab2:
     st.markdown("### 📊 Exploratory Data Analysis")
     st.markdown("Interactive exploration of movie dataset patterns and distributions")
     
+    # Filters
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -530,12 +556,15 @@ with tab2:
     with col3:
         if 'genres' in movies.columns:
             all_genres_list = []
-            for g in movies['genres'].dropna().head(500):
-                if isinstance(g, list):
-                    all_genres_list.extend(g)
+            for idx in range(min(len(movies), 1000)):
+                genres_val = movies.iloc[idx].get('genres')
+                extracted = extract_genres(genres_val)
+                all_genres_list.extend(extracted)
             unique_genres = sorted(set(all_genres_list))
+            unique_genres = [g for g in unique_genres if g and len(g) > 1]
             selected_genre = st.selectbox("Filter by Genre", ["All"] + unique_genres)
     
+    # Filter data
     filtered_df = movies.copy()
     filtered_df = filtered_df[filtered_df['vote_average'] >= min_rating]
     
@@ -543,19 +572,30 @@ with tab2:
         filtered_df = filtered_df[(filtered_df['year'] >= year_range[0]) & (filtered_df['year'] <= year_range[1])]
     
     if selected_genre != "All" and 'genres' in movies.columns:
-        filtered_df = filtered_df[filtered_df['genres'].apply(lambda x: selected_genre in x if isinstance(x, list) else False)]
+        genre_filtered_indices = []
+        for idx in range(len(filtered_df)):
+            genres_val = filtered_df.iloc[idx].get('genres')
+            extracted = extract_genres(genres_val)
+            if selected_genre in extracted:
+                genre_filtered_indices.append(idx)
+        filtered_df = filtered_df.iloc[genre_filtered_indices]
     
     st.markdown(f"**Found {len(filtered_df)} movies matching your criteria**")
     
+    # Display movies
     display_cols = ['title', 'year', 'vote_average', 'popularity']
     available_cols = [c for c in display_cols if c in filtered_df.columns]
     
-    st.dataframe(
-        filtered_df[available_cols].head(100),
-        use_container_width=True,
-        hide_index=True
-    )
+    if len(filtered_df) > 0:
+        st.dataframe(
+            filtered_df[available_cols].head(100),
+            use_container_width=True,
+            hide_index=True
+        )
+    else:
+        st.info("No movies match your filters")
     
+    # Visualizations
     st.markdown("---")
     st.markdown("### 📈 Data Visualizations")
     
@@ -565,16 +605,10 @@ with tab2:
         st.markdown("#### Most Popular Genres")
         
         all_genres_list_full = []
-        for idx in range(min(len(movies), 2000)):
+        for idx in range(min(len(movies), len(movies))):
             genres_val = movies.iloc[idx].get('genres')
-            if genres_val is not None:
-                if isinstance(genres_val, list):
-                    all_genres_list_full.extend(genres_val)
-                elif isinstance(genres_val, str):
-                    if '|' in genres_val:
-                        all_genres_list_full.extend(genres_val.split('|'))
-                    elif ',' in genres_val:
-                        all_genres_list_full.extend([g.strip() for g in genres_val.split(',')])
+            extracted = extract_genres(genres_val)
+            all_genres_list_full.extend(extracted)
         
         if all_genres_list_full:
             genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
@@ -604,7 +638,7 @@ with tab2:
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Genre data not available in the dataset")
+            st.warning("Could not extract genre data")
     
     with viz_tab2:
         st.markdown("#### Rating Distribution")
@@ -806,7 +840,7 @@ with tab3:
             status_placeholder.empty()
             st.rerun()
     
-   # Display recommendations
+    # Display recommendations
     if st.session_state.recommendations:
         if st.session_state.get('recommendation_type') == "text":
             st.markdown(f"""
