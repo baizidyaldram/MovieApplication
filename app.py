@@ -504,8 +504,8 @@ with tab2:
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
-    st.markdown("### Get Movie Recommendations")
-    st.markdown("Select a movie you love and get AI-powered recommendations.")
+    st.markdown("### 🎬 Get Movie Recommendations")
+    st.markdown("Select a movie you love and get AI-powered recommendations with movie posters!")
     
     from src.recommender import movies, get_recommendations
     from src.llm_explainer import explain_movie, initialize_llm
@@ -525,7 +525,7 @@ with tab3:
     with col2:
         n_recs = st.slider("Number of recommendations", 5, 20, 10)
     
-    if st.button("Generate Recommendations", type="primary", use_container_width=True):
+    if st.button("🎬 Generate Recommendations", type="primary", use_container_width=True):
         with st.spinner("Generating recommendations..."):
             recs = get_recommendations(source_movie, n_recs)
             st.session_state['recommendations'] = recs
@@ -533,40 +533,64 @@ with tab3:
             st.session_state['explanations'] = {}
     
     if 'recommendations' in st.session_state:
-        st.markdown(f"### Top recommendations based on **{st.session_state['source_movie']}**")
+        st.markdown(f"### 🎯 Top recommendations based on **{st.session_state['source_movie']}**")
         
         # Display in grid
         cols = st.columns(2)
         for idx, rec in enumerate(st.session_state['recommendations']):
             with cols[idx % 2]:
-                # Create genre badges HTML
-                genres_html = ""
-                for g in rec.get('genres', ['Various'])[:3]:
-                    genres_html += f'<span class="genre-badge">{g}</span>'
+                # Fetch poster (cached)
+                poster_url = get_cached_movie_poster(rec['title'], rec['year'])
                 
-                # Display movie card without extra HTML tags
-                st.markdown(f"""
-                <div class="movie-card">
-                    <div class="movie-title">🎬 {rec['title']}</div>
-                    <div class="movie-meta">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
-                    <div class="movie-meta">{genres_html}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem;">
-                        <span class="match-score">Match: {rec['match']}%</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                # Create two-column layout for poster + details
+                poster_col, info_col = st.columns([1, 2])
                 
-                # Explanation button
-                if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
-                    if st.session_state.openrouter_api_key:
-                        with st.spinner("Generating AI explanation..."):
-                            explanation = explain_movie(st.session_state['source_movie'], rec['title'])
-                            st.session_state['explanations'][rec['title']] = explanation
+                with poster_col:
+                    if poster_url:
+                        st.image(poster_url, use_container_width=True)
                     else:
-                        st.warning("⚠️ Add OpenRouter API key for AI explanations")
+                        # Beautiful gradient fallback
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 100%); 
+                                    border-radius: 8px; height: 180px; display: flex; align-items: center; 
+                                    justify-content: center; color: white; font-size: 3rem;">
+                            🎬
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                with info_col:
+                    st.markdown(f"""
+                    <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.5rem;">{rec['title']}</div>
+                    <div style="font-size: 0.85rem; color: #6B7280;">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Genre badges
+                    genres_html = ""
+                    for g in rec.get('genres', ['Various'])[:2]:
+                        genres_html += f'<span class="genre-badge">{g}</span>'
+                    st.markdown(genres_html, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                    <div style="margin: 10px 0;">
+                        <span class="match-score">🎯 Match: {rec['match']}%</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Explanation button
+                    if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
+                        if st.session_state.openrouter_api_key:
+                            with st.spinner("🤖 Generating AI explanation..."):
+                                explanation = explain_movie(st.session_state['source_movie'], rec['title'])
+                                st.session_state['explanations'][rec['title']] = explanation
+                        else:
+                            st.warning("⚠️ Add OpenRouter API key for AI explanations")
                 
                 # Show explanation if available
                 if rec['title'] in st.session_state.get('explanations', {}):
+                    with st.expander("💡 AI Explanation", expanded=True):
+                        st.info(st.session_state['explanations'][rec['title']])
+                
+                st.markdown("---")
                     st.info(st.session_state['explanations'][rec['title']])
 
 # ==================== TAB 4: EVALUATION ====================
@@ -664,7 +688,9 @@ with tab5:
 st.markdown("""
 <div class="footer">
     <div>Hybrid Movie Recommendation System | Powered by SBERT, SVD, XGBoost and OpenRouter AI</div>
+    <div style="font-size: 0.7rem; margin-top: 0.5rem;">
+        Movie posters provided by <a href="https://www.themoviedb.org/" target="_blank" style="color: #2563EB;">TMDB</a>
+    </div>
     <div style="font-size: 0.75rem; margin-top: 0.5rem;">2024 - Built with Streamlit</div>
 </div>
 """, unsafe_allow_html=True)
-
