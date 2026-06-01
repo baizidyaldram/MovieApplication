@@ -817,4 +817,4 @@ with tab3:
         else:
             st.markdown(f"""
             <div style="text-align: center; margin: 1.5rem 0;">
-                <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_m
+                <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_m}
