@@ -27,12 +27,6 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* Main container */
-    .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        padding: 0rem 1rem;
-    }
-    
     /* Glass morphism cards */
     .glass-card {
         background: rgba(255, 255, 255, 0.1);
@@ -109,16 +103,6 @@ st.markdown("""
     
     .poster-image:hover {
         transform: scale(1.05);
-    }
-    
-    /* Spotlight poster - MEDIUM SIZE */
-    .spotlight-poster {
-        width: 120px;
-        height: 180px;
-        object-fit: cover;
-        border-radius: 8px;
-        margin: 0 auto;
-        display: block;
     }
     
     /* Genre badges */
@@ -490,24 +474,26 @@ with tab2:
         st.markdown("#### 📊 Vote Count vs Rating")
         # Sample data for better performance
         sample_df = filtered_df.head(500).copy()
-        sample_df['vote_count_log'] = np.log10(sample_df['vote_count'] + 1)
         
-        fig = px.scatter(
-            sample_df,
-            x='vote_count',
-            y='vote_average',
-            title="Relationship between Vote Count and Rating",
-            color_discrete_sequence=['#667eea'],
-            opacity=0.6
-        )
-        fig.update_layout(
-            xaxis_title="Vote Count (Log Scale)",
-            yaxis_title="Average Rating",
-            template="plotly_dark",
-            height=450
-        )
-        fig.update_xaxis(type="log")
-        st.plotly_chart(fig, use_container_width=True)
+        if len(sample_df) > 0:
+            fig = px.scatter(
+                sample_df,
+                x='vote_count',
+                y='vote_average',
+                title="Relationship between Vote Count and Rating",
+                color_discrete_sequence=['#667eea'],
+                opacity=0.6
+            )
+            fig.update_layout(
+                xaxis_title="Vote Count (Log Scale)",
+                yaxis_title="Average Rating",
+                template="plotly_dark",
+                height=450
+            )
+            fig.update_xaxis(type="log")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Not enough data for this visualization")
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
