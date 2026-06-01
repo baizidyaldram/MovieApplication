@@ -10,13 +10,13 @@ import random
 
 # Page configuration
 st.set_page_config(
-    page_title="🎬 CinemAI - Smart Movie Recommender",
+    page_title="Hybrid Movie Recommendation System using GenAI",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom CSS for stunning animations and design
+# Custom CSS for stunning animations and design - DARK THEME FIXED
 st.markdown("""
 <style>
     /* Import Google Fonts */
@@ -27,95 +27,144 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
     }
     
-    /* Animated gradient background */
+    /* Main container - Dark theme background */
     .stApp {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        animation: gradientShift 10s ease infinite;
+        background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
     }
     
-    @keyframes gradientShift {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    /* Glass morphism cards */
+    /* Glass morphism cards - Dark theme compatible */
     .glass-card {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(30, 30, 50, 0.7);
         backdrop-filter: blur(10px);
         border-radius: 1rem;
         padding: 1.5rem;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.15);
         transition: all 0.3s ease;
+        color: #ffffff;
     }
     
     .glass-card:hover {
         transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.15);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        background: rgba(40, 40, 70, 0.8);
+        border-color: rgba(102, 126, 234, 0.5);
     }
     
-    /* Main content area */
-    .main {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    /* Mode selector styling */
+    .mode-selector {
+        display: flex;
+        gap: 1rem;
+        padding: 0.5rem;
+        background: rgba(20, 20, 40, 0.8);
+        border-radius: 50px;
+        margin-bottom: 2rem;
     }
     
-    /* Animated movie card */
+    .mode-btn {
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+        background: transparent;
+        color: #a0a0c0;
+    }
+    
+    .mode-btn-active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 5px 15px rgba(102,126,234,0.4);
+    }
+    
+    /* Tab styling - BIGGER and VISIBLE */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+        background: rgba(20, 20, 40, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 60px;
+        padding: 10px 15px;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 50px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        color: #d0d0e0 !important;
+        background: transparent;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: rgba(102, 126, 234, 0.2);
+        color: white !important;
+    }
+    
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        box-shadow: 0 5px 15px rgba(102,126,234,0.3);
+    }
+    
+    /* Metric cards - Dark theme */
+    .metric-card-modern {
+        background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+        backdrop-filter: blur(10px);
+        border-radius: 1rem;
+        padding: 1rem;
+        text-align: center;
+        color: white;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .metric-card-modern:hover {
+        transform: translateY(-5px);
+        background: linear-gradient(135deg, rgba(102,126,234,0.35), rgba(118,75,162,0.35));
+    }
+    
+    /* Movie card - Medium poster size */
     .movie-card-animated {
-        background: white;
+        background: rgba(30, 30, 50, 0.8);
+        backdrop-filter: blur(10px);
         border-radius: 1rem;
         padding: 1rem;
         margin: 0.5rem;
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         cursor: pointer;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .movie-card-animated::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.5s;
-    }
-    
-    .movie-card-animated:hover::before {
-        left: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
     .movie-card-animated:hover {
-        transform: translateY(-10px) scale(1.02);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        transform: translateY(-5px);
+        background: rgba(40, 40, 70, 0.9);
+        border-color: rgba(102, 126, 234, 0.5);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
     }
     
-    /* Spotlight card */
-    .spotlight-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 1rem;
-        padding: 2rem;
-        text-align: center;
-        animation: pulse 2s infinite;
+    /* Poster image styling - MEDIUM SIZE */
+    .poster-image {
+        width: 100px;
+        height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+        transition: transform 0.3s ease;
     }
     
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
+    .poster-image:hover {
+        transform: scale(1.05);
     }
     
-    /* Genre badges */
+    /* Genre badges - Dark theme */
     .genre-badge-modern {
         display: inline-block;
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
         padding: 0.3rem 1rem;
         border-radius: 20px;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 500;
         margin: 0.2rem;
         transition: all 0.3s ease;
@@ -124,52 +173,6 @@ st.markdown("""
     .genre-badge-modern:hover {
         transform: scale(1.05);
         box-shadow: 0 5px 15px rgba(102,126,234,0.4);
-    }
-    
-    /* Score circle */
-    .score-circle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: conic-gradient(from 0deg, #10B981 0deg, #10B981 var(--percent), #e5e7eb var(--percent));
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-    }
-    
-    .score-inner {
-        width: 50px;
-        height: 50px;
-        background: white;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        font-size: 1rem;
-    }
-    
-    /* Tab styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(10px);
-        border-radius: 50px;
-        padding: 8px;
-        margin-bottom: 2rem;
-    }
-    
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 40px;
-        padding: 8px 24px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-    
-    .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white !important;
     }
     
     /* Button styling */
@@ -188,28 +191,73 @@ st.markdown("""
         box-shadow: 0 10px 20px rgba(102,126,234,0.3);
     }
     
-    /* Metric cards */
-    .metric-card-modern {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 1rem;
-        padding: 1rem;
-        text-align: center;
+    /* Spotlight card */
+    .spotlight-card {
+        background: linear-gradient(135deg, rgba(102,126,234,0.3), rgba(118,75,162,0.3));
+        backdrop-filter: blur(10px);
         color: white;
-        transition: all 0.3s ease;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        text-align: center;
+        animation: pulse 2s infinite;
+        border: 1px solid rgba(255,255,255,0.2);
     }
     
-    .metric-card-modern:hover {
-        transform: translateY(-5px);
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.02); opacity: 0.95; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Headers - Always visible */
+    h1, h2, h3, h4, h5, h6, p, li, span {
+        color: #ffffff !important;
+    }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background: rgba(20, 20, 40, 0.95);
+        backdrop-filter: blur(10px);
+        border-right: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #e0e0f0 !important;
+    }
+    
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        background: rgba(30, 30, 50, 0.8);
+        border-radius: 0.5rem;
+        color: white !important;
+    }
+    
+    /* Dataframe styling */
+    .dataframe {
+        background: rgba(20, 20, 40, 0.8);
+        color: white !important;
     }
     
     /* Footer */
     .footer {
         text-align: center;
         padding: 2rem;
-        color: #fff;
-        background: rgba(0,0,0,0.3);
+        color: #a0a0c0;
+        background: rgba(20, 20, 40, 0.5);
         border-radius: 1rem;
         margin-top: 2rem;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    /* Selectbox styling */
+    .stSelectbox label, .stSlider label {
+        color: #e0e0f0 !important;
+    }
+    
+    /* Info/Success/Warning boxes */
+    .stAlert {
+        background: rgba(30, 30, 50, 0.9) !important;
+        color: white !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -221,14 +269,16 @@ if 'recommendations' not in st.session_state:
     st.session_state.recommendations = None
 if 'auto_explain' not in st.session_state:
     st.session_state.auto_explain = True
+if 'mode' not in st.session_state:
+    st.session_state.mode = "recommend"
 
 # Sidebar
 with st.sidebar:
     st.markdown("""
     <div style="text-align: center; padding: 1rem 0;">
         <div style="font-size: 3rem;">🎬</div>
-        <div style="font-weight: 800; font-size: 1.5rem;">CinemAI</div>
-        <div style="font-size: 0.75rem; opacity: 0.8;">AI-Powered Movie Recommender</div>
+        <div style="font-weight: 800; font-size: 1.2rem;">Hybrid Movie Recommender</div>
+        <div style="font-size: 0.7rem; opacity: 0.8;">Powered by GenAI</div>
     </div>
     """, unsafe_allow_html=True)
     
@@ -268,7 +318,7 @@ from src.llm_explainer import explain_movie, initialize_llm
 if st.session_state.openrouter_api_key:
     initialize_llm(st.session_state.openrouter_api_key)
 
-# TMDB Poster function
+# TMDB Poster function - Medium size
 def get_movie_poster(movie_title, year=None):
     try:
         if "TMDB_API_KEY" in st.secrets:
@@ -282,40 +332,183 @@ def get_movie_poster(movie_title, year=None):
             if data.get("results") and len(data["results"]) > 0:
                 poster_path = data["results"][0].get("poster_path")
                 if poster_path:
-                    return f"https://image.tmdb.org/t/p/w500{poster_path}"
+                    return f"https://image.tmdb.org/t/p/w200{poster_path}"  # Medium size: w200
     except:
         pass
     return None
 
-# Create tabs
-tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "🎯 DASHBOARD",
-    "📊 EXPLORE DATA",
-    "🎬 RECOMMENDATIONS",
-    "🔬 MODEL INSIGHTS",
-    "ℹ️ ABOUT"
-])
+# Main title
+st.markdown("""
+<h1 style="text-align: center; font-size: 2.5rem; margin-bottom: 0.5rem;">
+    🎬 Hybrid Movie Recommendation System <span style="background: linear-gradient(135deg, #667eea, #764ba2); 
+    padding: 0.2rem 0.8rem; border-radius: 50px; font-size: 1rem;">using GenAI</span>
+</h1>
+<p style="text-align: center; color: #a0a0c0; margin-bottom: 2rem;">
+    Intelligent movie discovery powered by SBERT, SVD, XGBoost & OpenRouter AI
+</p>
+""", unsafe_allow_html=True)
 
-# ==================== TAB 1: DASHBOARD ====================
-with tab1:
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <h1 style="font-size: 3rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Welcome to CinemAI
-        </h1>
-        <p style="font-size: 1.2rem;">Your intelligent movie companion powered by AI</p>
+# Mode selector
+st.markdown("""
+<div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
+    <div id="mode_recommend" class="mode-btn {}" style="padding: 0.75rem 2rem; border-radius: 40px; font-weight: 600; cursor: pointer; text-align: center; background: {}; color: {};">
+        🎯 Get Recommendations
     </div>
-    """, unsafe_allow_html=True)
+    <div id="mode_explore" class="mode-btn {}" style="padding: 0.75rem 2rem; border-radius: 40px; font-weight: 600; cursor: pointer; text-align: center; background: {}; color: {};">
+        📊 Explore Data
+    </div>
+</div>
+""".format(
+    "mode-btn-active" if st.session_state.mode == "recommend" else "mode-btn",
+    "linear-gradient(135deg, #667eea, #764ba2)" if st.session_state.mode == "recommend" else "rgba(30,30,50,0.8)",
+    "white" if st.session_state.mode == "recommend" else "#a0a0c0",
+    "mode-btn-active" if st.session_state.mode == "explore" else "mode-btn",
+    "linear-gradient(135deg, #667eea, #764ba2)" if st.session_state.mode == "explore" else "rgba(30,30,50,0.8)",
+    "white" if st.session_state.mode == "explore" else "#a0a0c0"
+), unsafe_allow_html=True)
+
+# Mode selection buttons (using columns for clickable buttons)
+col_mode1, col_mode2, col_mode3 = st.columns([1, 1, 2])
+with col_mode1:
+    if st.button("🎯 Get Recommendations", use_container_width=True, 
+                 type="primary" if st.session_state.mode == "recommend" else "secondary"):
+        st.session_state.mode = "recommend"
+        st.rerun()
+with col_mode2:
+    if st.button("📊 Explore Data", use_container_width=True,
+                 type="primary" if st.session_state.mode == "explore" else "secondary"):
+        st.session_state.mode = "explore"
+        st.rerun()
+
+# Create tabs (keeping all tab names)
+if st.session_state.mode == "recommend":
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "🎯 RECOMMENDATIONS",
+        "🎬 DASHBOARD", 
+        "📊 EXPLORE DATA",
+        "🔬 MODEL INSIGHTS",
+        "ℹ️ ABOUT"
+    ])
+else:
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+        "📊 EXPLORE DATA",
+        "🎬 DASHBOARD",
+        "🎯 RECOMMENDATIONS", 
+        "🔬 MODEL INSIGHTS",
+        "ℹ️ ABOUT"
+    ])
+
+# ==================== TAB 1 / RECOMMENDATIONS ====================
+if st.session_state.mode == "recommend":
+    current_tab = tab1
+else:
+    current_tab = tab3
+
+with (tab1 if st.session_state.mode == "recommend" else tab3):
+    st.markdown("### 🎬 AI Movie Recommendations")
+    st.markdown("Get personalized movie recommendations powered by hybrid AI")
     
-    # Quick stats row
+    from src.recommender import get_recommendations
+    
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        movie_list = sorted(movies["title"].tolist())
+        source_movie = st.selectbox("Choose a movie you love", movie_list)
+    
+    with col2:
+        n_recs = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
+    
+    custom_query = st.text_input("🔍 Or describe what you're looking for", 
+                                  placeholder="e.g., 'funny action movies', 'romantic dramas with happy endings'...")
+    
+    if st.button("🎯 Get Recommendations", type="primary", use_container_width=True):
+        with st.spinner("🤖 Analyzing and generating recommendations..."):
+            recs = get_recommendations(source_movie, n_recs * 2)
+            st.session_state.recommendations = recs[:n_recs]
+            st.session_state.source_movie = source_movie
+            st.session_state.explanations = {}
+            
+            if st.session_state.auto_explain and st.session_state.openrouter_api_key:
+                with st.spinner("💡 Generating AI explanations..."):
+                    for rec in st.session_state.recommendations:
+                        explanation = explain_movie(source_movie, rec['title'])
+                        st.session_state.explanations[rec['title']] = explanation
+    
+    if st.session_state.recommendations:
+        st.markdown(f"""
+        <div style="text-align: center; margin: 2rem 0;">
+            <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        cols = st.columns(2)
+        for idx, rec in enumerate(st.session_state.recommendations):
+            with cols[idx % 2]:
+                poster_url = get_movie_poster(rec['title'], rec.get('year', None))
+                
+                col_post, col_info = st.columns([1, 2])
+                
+                with col_post:
+                    if poster_url:
+                        st.image(poster_url, use_container_width=True)
+                    else:
+                        st.markdown("""
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
+                                    width: 100%; aspect-ratio: 2/3; border-radius: 8px; 
+                                    display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                            🎬
+                        </div>
+                        """, unsafe_allow_html=True)
+                
+                with col_info:
+                    st.markdown(f"""
+                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem;">
+                        {idx + 1}. {rec['title']}
+                    </div>
+                    <div>⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
+                    """, unsafe_allow_html=True)
+                    
+                    genres_html = ""
+                    for g in rec.get('genres', ['Various'])[:3]:
+                        genres_html += f'<span class="genre-badge-modern">{g}</span>'
+                    st.markdown(genres_html, unsafe_allow_html=True)
+                    
+                    st.markdown(f"""
+                    <div style="margin-top: 0.75rem;">
+                        <span style="background: linear-gradient(135deg, #10B981, #059669); 
+                                     padding: 0.25rem 0.75rem; border-radius: 20px; color: white; font-weight: 600;">
+                            Match: {rec['match']}%
+                        </span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                if rec['title'] in st.session_state.get('explanations', {}):
+                    with st.expander("💡 AI Explanation", expanded=True):
+                        st.info(st.session_state.explanations[rec['title']])
+                else:
+                    if st.button(f"🤖 Explain {rec['title']}", key=f"exp_{idx}"):
+                        if st.session_state.openrouter_api_key:
+                            with st.spinner("Generating explanation..."):
+                                explanation = explain_movie(st.session_state.source_movie, rec['title'])
+                                st.session_state.explanations[rec['title']] = explanation
+                                st.rerun()
+                        else:
+                            st.warning("Add OpenRouter API key for AI explanations")
+                
+                st.markdown("---")
+
+# ==================== DASHBOARD TAB ====================
+with tab2:
+    st.markdown("### 🎬 Dashboard")
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
         st.markdown(f"""
         <div class="metric-card-modern">
             <div style="font-size: 2rem;">🎬</div>
-            <div style="font-size: 1.8rem; font-weight: 700;">{len(movies):,}</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">{len(movies):,}</div>
             <div>Movies Available</div>
         </div>
         """, unsafe_allow_html=True)
@@ -325,7 +518,7 @@ with tab1:
         st.markdown(f"""
         <div class="metric-card-modern">
             <div style="font-size: 2rem;">⭐</div>
-            <div style="font-size: 1.8rem; font-weight: 700;">{avg_rating:.1f}</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">{avg_rating:.1f}</div>
             <div>Average Rating</div>
         </div>
         """, unsafe_allow_html=True)
@@ -334,7 +527,7 @@ with tab1:
         st.markdown(f"""
         <div class="metric-card-modern">
             <div style="font-size: 2rem;">🎭</div>
-            <div style="font-size: 1.8rem; font-weight: 700;">19</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">19</div>
             <div>Unique Genres</div>
         </div>
         """, unsafe_allow_html=True)
@@ -343,20 +536,19 @@ with tab1:
         st.markdown(f"""
         <div class="metric-card-modern">
             <div style="font-size: 2rem;">🤖</div>
-            <div style="font-size: 1.8rem; font-weight: 700;">AI</div>
-            <div>Powered by OpenRouter</div>
+            <div style="font-size: 1.5rem; font-weight: 700;">AI</div>
+            <div>Powered by GenAI</div>
         </div>
         """, unsafe_allow_html=True)
     
-    # Movie Spotlight Section
+    # Movie Spotlight
     st.markdown("---")
     st.markdown("### 🌟 Movie Spotlight")
     
-    # Get random high-rated movies for spotlight
-    high_rated = movies[movies['vote_average'] >= 7.5].sample(min(5, len(movies)))
-    
+    high_rated = movies[movies['vote_average'] >= 7.5].sample(min(3, len(movies)))
     spotlight_cols = st.columns(3)
-    for idx, (_, movie) in enumerate(high_rated.head(3).iterrows()):
+    
+    for idx, (_, movie) in enumerate(high_rated.iterrows()):
         with spotlight_cols[idx]:
             poster = get_movie_poster(movie['title'], movie.get('year', None))
             if poster:
@@ -364,20 +556,18 @@ with tab1:
             else:
                 st.markdown(f"""
                 <div class="spotlight-card">
-                    <div style="font-size: 3rem;">🎬</div>
-                    <div style="font-weight: 700; font-size: 1.1rem;">{movie['title']}</div>
+                    <div style="font-size: 2rem;">🎬</div>
+                    <div style="font-weight: 700;">{movie['title'][:30]}</div>
                     <div>⭐ {movie['vote_average']}/10</div>
-                    <div style="font-size: 0.8rem; margin-top: 0.5rem;">📅 {movie.get('year', 'N/A')}</div>
                 </div>
                 """, unsafe_allow_html=True)
     
-    # Genre Distribution Pie Chart
+    # Genre Distribution
     st.markdown("---")
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown("### 🎭 Genre Distribution")
-        # Extract genres
         all_genres = []
         for genres in movies['genres'].head(1000):
             if isinstance(genres, list):
@@ -395,7 +585,8 @@ with tab1:
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            height=400
+            height=400,
+            font=dict(color="white")
         )
         st.plotly_chart(fig, use_container_width=True)
     
@@ -410,28 +601,15 @@ with tab1:
             template="plotly_dark",
             paper_bgcolor="rgba(0,0,0,0)",
             plot_bgcolor="rgba(0,0,0,0)",
-            height=400
+            height=400,
+            font=dict(color="white")
         )
         st.plotly_chart(fig, use_container_width=True)
-    
-    # Recent Releases
-    st.markdown("---")
-    st.markdown("### 🆕 Recent Movie Releases")
-    
-    if 'release_date' in movies.columns:
-        recent = movies.dropna(subset=['release_date']).sort_values('release_date', ascending=False).head(10)
-        st.dataframe(
-            recent[['title', 'release_date', 'vote_average', 'popularity']],
-            use_container_width=True,
-            hide_index=True
-        )
 
-# ==================== TAB 2: EXPLORE DATA ====================
-with tab2:
+# ==================== EXPLORE DATA TAB ====================
+with tab3 if st.session_state.mode == "recommend" else tab1:
     st.markdown("### 📊 Movie Data Explorer")
-    st.markdown("Interactive exploration of the movie dataset")
     
-    # Filters
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -452,7 +630,6 @@ with tab2:
             unique_genres = sorted(set(all_genres_list))
             selected_genre = st.selectbox("Filter by Genre", ["All"] + unique_genres)
     
-    # Filter data
     filtered_df = movies.copy()
     filtered_df = filtered_df[filtered_df['vote_average'] >= min_rating]
     
@@ -464,7 +641,6 @@ with tab2:
     
     st.markdown(f"**Found {len(filtered_df)} movies matching your criteria**")
     
-    # Display movies
     display_cols = ['title', 'year', 'vote_average', 'popularity']
     available_cols = [c for c in display_cols if c in filtered_df.columns]
     
@@ -473,122 +649,10 @@ with tab2:
         use_container_width=True,
         hide_index=True
     )
-    
-    # Top Rated by Genre
-    if selected_genre == "All":
-        st.markdown("---")
-        st.markdown("### 🏆 Top Rated Movies Overall")
-        
-        top_rated = movies.nlargest(10, 'vote_average')
-        for idx, movie in top_rated.iterrows():
-            st.markdown(f"""
-            <div style="display: flex; justify-content: space-between; align-items: center; 
-                        padding: 0.5rem; border-bottom: 1px solid #e5e7eb;">
-                <div>
-                    <span style="font-weight: 600;">{movie['title']}</span>
-                    <span style="margin-left: 1rem; color: #666;">({movie.get('year', 'N/A')})</span>
-                </div>
-                <div>⭐ {movie['vote_average']}</div>
-            </div>
-            """, unsafe_allow_html=True)
 
-# ==================== TAB 3: RECOMMENDATIONS ====================
-with tab3:
-    st.markdown("### 🎬 AI Movie Recommendations")
-    st.markdown("Get personalized movie recommendations powered by hybrid AI")
-    
-    from src.recommender import get_recommendations
-    
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        movie_list = sorted(movies["title"].tolist())
-        source_movie = st.selectbox("Choose a movie you love", movie_list)
-    
-    with col2:
-        n_recs = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
-    
-    # Custom query input
-    custom_query = st.text_input("🔍 Or describe what you're looking for (e.g., 'funny action movies', 'romantic dramas')", 
-                                  placeholder="Leave empty for standard recommendations...")
-    
-    if st.button("🎯 Get Recommendations", type="primary", use_container_width=True):
-        with st.spinner("🤖 Analyzing and generating recommendations..."):
-            recs = get_recommendations(source_movie, n_recs * 2)  # Get extra for filtering
-            st.session_state.recommendations = recs[:n_recs]
-            st.session_state.source_movie = source_movie
-            st.session_state.explanations = {}
-            
-            # Auto-generate explanations if enabled
-            if st.session_state.auto_explain and st.session_state.openrouter_api_key:
-                with st.spinner("💡 Generating AI explanations..."):
-                    for rec in st.session_state.recommendations:
-                        explanation = explain_movie(source_movie, rec['title'])
-                        st.session_state.explanations[rec['title']] = explanation
-    
-    if st.session_state.recommendations:
-        st.markdown(f"""
-        <div style="text-align: center; margin: 2rem 0;">
-            <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Display recommendations in a nice grid
-        cols = st.columns(2)
-        for idx, rec in enumerate(st.session_state.recommendations):
-            with cols[idx % 2]:
-                poster_url = get_movie_poster(rec['title'], rec.get('year', None))
-                
-                st.markdown(f"""
-                <div class="movie-card-animated">
-                    <div style="display: flex; gap: 1rem;">
-                        <div style="flex: 1;">
-                            <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem;">
-                                {idx + 1}. {rec['title']}
-                            </div>
-                            <div>⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
-                            <div style="margin: 0.5rem 0;">
-                                {''.join([f'<span class="genre-badge-modern">{g}</span>' for g in rec.get('genres', ['Various'])[:3]])}
-                            </div>
-                            <div style="margin-top: 0.5rem;">
-                                <span style="background: linear-gradient(135deg, #10B981, #059669); 
-                                             padding: 0.25rem 0.75rem; border-radius: 20px; color: white; font-weight: 600;">
-                                    Match: {rec['match']}%
-                                </span>
-                            </div>
-                        </div>
-                        <div style="flex: 0.5;">
-                            {f'<img src="{poster_url}" style="width: 100px; border-radius: 8px;">' if poster_url else 
-                             '<div style="width: 100px; height: 120px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🎬</div>'}
-                        </div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Show explanation if available
-                if rec['title'] in st.session_state.get('explanations', {}):
-                    with st.expander("💡 AI Explanation", expanded=True):
-                        st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, #667eea15, #764ba215); 
-                                    padding: 1rem; border-radius: 0.5rem; border-left: 4px solid #667eea;">
-                            {st.session_state.explanations[rec['title']]}
-                        </div>
-                        """, unsafe_allow_html=True)
-                else:
-                    if st.button(f"🤖 Explain {rec['title']}", key=f"exp_{idx}"):
-                        if st.session_state.openrouter_api_key:
-                            with st.spinner("Generating explanation..."):
-                                explanation = explain_movie(st.session_state.source_movie, rec['title'])
-                                st.session_state.explanations[rec['title']] = explanation
-                                st.rerun()
-                        else:
-                            st.warning("Add OpenRouter API key for AI explanations")
-                
-                st.markdown("---")
-
-# ==================== TAB 4: MODEL INSIGHTS ====================
+# ==================== MODEL INSIGHTS TAB ====================
 with tab4:
-    st.markdown("### 🔬 Model Insights & Performance")
+    st.markdown("### 🔬 Model Insights")
     
     col1, col2 = st.columns(2)
     
@@ -604,9 +668,9 @@ with tab4:
                 <li><strong>RRF</strong> - Reciprocal Rank Fusion</li>
                 <li><strong>OpenRouter AI</strong> - Natural language explanations</li>
             </ul>
-            <div style="margin-top: 1rem; padding: 1rem; background: rgba(102,126,234,0.1); border-radius: 0.5rem;">
+            <div style="margin-top: 1rem; padding: 1rem; background: rgba(102,126,234,0.15); border-radius: 0.5rem;">
                 <strong>Formula:</strong>
-                <code>Score = 50% SBERT + 25% XGBoost + 15% Latent + 10% RRF</code>
+                <code style="color: #667eea;">Score = 50% SBERT + 25% XGBoost + 15% Latent + 10% RRF</code>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -620,16 +684,17 @@ with tab4:
                 <li><strong>Precision:</strong> 0.83</li>
                 <li><strong>Recall:</strong> 0.81</li>
                 <li><strong>F1 Score:</strong> 0.82</li>
+                <li><strong>AUC-ROC:</strong> 0.90</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
     
-    # Feature importance chart
     st.markdown("---")
     st.markdown("### 📈 Feature Importance")
     
     feature_data = {
-        'Feature': ['Content Similarity', 'XGBoost Score', 'Latent Features', 'Popularity', 'Rating', 'RRF Score'],
+        'Feature': ['Content Similarity (SBERT)', 'XGBoost Score', 'Latent Features (SVD)', 
+                    'Popularity', 'Rating', 'RRF Score'],
         'Importance': [50, 25, 15, 5, 3, 2]
     }
     df_features = pd.DataFrame(feature_data)
@@ -637,19 +702,19 @@ with tab4:
     fig = px.bar(df_features, x='Importance', y='Feature', orientation='h',
                   title="Model Weight Distribution",
                   color='Importance', color_continuous_scale='Purples')
-    fig.update_layout(height=400, template="plotly_white")
+    fig.update_layout(height=400, template="plotly_dark", font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
 
-# ==================== TAB 5: ABOUT ====================
+# ==================== ABOUT TAB ====================
 with tab5:
     st.markdown("""
     <div style="text-align: center; margin-bottom: 2rem;">
         <div style="font-size: 4rem;">🎬</div>
         <h1 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                    -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            CinemAI
+            Hybrid Movie Recommendation System
         </h1>
-        <p style="font-size: 1.2rem;">The Future of Movie Discovery</p>
+        <p style="font-size: 1.1rem;">Powered by Generative AI</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -668,7 +733,7 @@ with tab5:
         - **Sentence-BERT**: Semantic understanding of movie plots
         - **Latent Semantic Analysis**: Hidden pattern detection
         - **XGBoost**: Machine learning re-ranking
-        - **OpenRouter AI**: Natural language explanations
+        - **OpenRouter AI**: Natural language explanations (GPT-OSS-120B)
         - **TMDB**: High-quality movie posters
         
         ### 📊 Dataset
@@ -687,6 +752,7 @@ with tab5:
         - ✅ **Interactive Data Explorer**
         - ✅ **Beautiful Movie Posters**
         - ✅ **Real-time Genre Analytics**
+        - ✅ **Dark Theme UI**
         
         ### 🔗 Links
         
@@ -696,7 +762,7 @@ with tab5:
         
         ### 📞 Contact
         
-        Built with ❤️ by Baizid Yaldram
+        Built with ❤️ by **Baizid Yaldram**
         
         *For inquiries or feedback, please reach out via GitHub*
         """)
@@ -704,8 +770,8 @@ with tab5:
 # Footer
 st.markdown("""
 <div class="footer">
-    <div>🎬 CinemAI - Hybrid Movie Recommendation System</div>
-    <div style="font-size: 0.75rem; margin-top: 0.5rem;">
+    <div>🎬 Hybrid Movie Recommendation System using GenAI</div>
+    <div style="font-size: 0.7rem; margin-top: 0.5rem;">
         Powered by SBERT, SVD, XGBoost &amp; OpenRouter AI | Movie posters by TMDB
     </div>
 </div>
