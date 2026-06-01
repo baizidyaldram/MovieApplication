@@ -710,55 +710,121 @@ with tab3:
         
         if st.button("🔍 Find Movies Based on Your Description", type="primary", use_container_width=True):
             if user_query.strip():
-                with st.spinner("🤖 Analyzing your description and finding matching movies..."):
-                    # Get recommendations based on text query
+                # Create a placeholder for progress
+                progress_placeholder = st.empty()
+                status_placeholder = st.empty()
+                
+                with progress_placeholder.container():
+                    progress_bar = st.progress(0)
+                    
+                    # Step 1: Analyzing query
+                    status_placeholder.info("🔍 Analyzing your movie preferences...")
+                    progress_bar.progress(20)
+                    time.sleep(0.3)
+                    
+                    # Step 2: Finding matches
+                    status_placeholder.info("🎯 Finding movies that match your description...")
+                    progress_bar.progress(40)
                     text_recs = get_recommendations_by_text(user_query, n_recs_text)
+                    progress_bar.progress(60)
+                    time.sleep(0.2)
+                    
+                    # Step 3: Processing results
+                    status_placeholder.info("📊 Processing recommendations...")
                     st.session_state.recommendations = text_recs
                     st.session_state.source_query = user_query
                     st.session_state.recommendation_type = "text"
                     st.session_state.explanations = {}
+                    progress_bar.progress(70)
+                    time.sleep(0.2)
                     
+                    # Step 4: Generating AI explanations (if enabled)
                     if st.session_state.auto_explain and st.session_state.openrouter_api_key:
-                        with st.spinner("💡 Generating AI explanations for your recommendations..."):
-                            for rec in st.session_state.recommendations:
-                                explanation = explain_movie_by_query(user_query, rec['title'])
-                                st.session_state.explanations[rec['title']] = explanation
+                        status_placeholder.info("🤖 Generating AI explanations (this may take a moment)...")
+                        for i, rec in enumerate(st.session_state.recommendations):
+                            explanation = explain_movie_by_query(user_query, rec['title'])
+                            st.session_state.explanations[rec['title']] = explanation
+                            # Update progress for each explanation
+                            progress = 70 + int((i + 1) / len(st.session_state.recommendations) * 30)
+                            progress_bar.progress(progress)
+                            time.sleep(0.1)
+                    else:
+                        progress_bar.progress(100)
+                    
+                    # Step 5: Complete
+                    status_placeholder.success("✅ Recommendations ready!")
+                    progress_bar.progress(100)
+                    time.sleep(0.5)
+                
+                # Clear the progress indicators
+                progress_placeholder.empty()
+                status_placeholder.empty()
+                
+                # Force rerun to show results
+                st.rerun()
             else:
                 st.warning("⚠️ Please describe what kind of movie you want to watch!")
-    
-    else:
-        # MOVIE-BASED RECOMMENDATION (Original method)
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            movie_list = sorted(movies["title"].tolist())
-            source_movie = st.selectbox("Choose a movie you love", movie_list)
-        
-        with col2:
-            n_recs_movie = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
-        
-        custom_query = st.text_input(
-            "🔍 Or add extra preferences", 
-            placeholder="e.g., 'funny', 'romantic', 'recent movies only'..."
-        )
         
         if st.button("🎯 Get Recommendations Based on This Movie", type="primary", use_container_width=True):
-            with st.spinner("🤖 Analyzing and generating recommendations..."):
+            # Create a placeholder for progress
+            progress_placeholder = st.empty()
+            status_placeholder = st.empty()
+            
+            with progress_placeholder.container():
+                progress_bar = st.progress(0)
+                
+                # Step 1: Analyzing movie
+                status_placeholder.info(f"🎬 Analyzing '{source_movie}'...")
+                progress_bar.progress(20)
+                time.sleep(0.3)
+                
+                # Step 2: Finding similar movies
+                status_placeholder.info("🔍 Finding similar movies using hybrid AI...")
+                progress_bar.progress(40)
                 recs = get_recommendations(source_movie, n_recs_movie * 2)
-                # Apply extra filtering if custom query provided
+                progress_bar.progress(60)
+                time.sleep(0.2)
+                
+                # Step 3: Applying filters (if any)
                 if custom_query:
+                    status_placeholder.info(f"🎯 Filtering with: '{custom_query}'...")
                     recs = filter_recommendations_by_text(recs, custom_query)
+                    progress_bar.progress(70)
+                    time.sleep(0.2)
+                
+                # Step 4: Processing results
+                status_placeholder.info("📊 Processing recommendations...")
                 st.session_state.recommendations = recs[:n_recs_movie]
                 st.session_state.source_movie = source_movie
                 st.session_state.source_query = custom_query
                 st.session_state.recommendation_type = "movie"
                 st.session_state.explanations = {}
+                progress_bar.progress(80)
+                time.sleep(0.2)
                 
+                # Step 5: Generating AI explanations
                 if st.session_state.auto_explain and st.session_state.openrouter_api_key:
-                    with st.spinner("💡 Generating AI explanations..."):
-                        for rec in st.session_state.recommendations:
-                            explanation = explain_movie(source_movie, rec['title'])
-                            st.session_state.explanations[rec['title']] = explanation
+                    status_placeholder.info("🤖 Generating AI explanations (this may take a moment)...")
+                    for i, rec in enumerate(st.session_state.recommendations):
+                        explanation = explain_movie(source_movie, rec['title'])
+                        st.session_state.explanations[rec['title']] = explanation
+                        progress = 80 + int((i + 1) / len(st.session_state.recommendations) * 20)
+                        progress_bar.progress(progress)
+                        time.sleep(0.1)
+                else:
+                    progress_bar.progress(100)
+                
+                # Step 6: Complete
+                status_placeholder.success("✅ Recommendations ready!")
+                progress_bar.progress(100)
+                time.sleep(0.5)
+            
+            # Clear progress indicators
+            progress_placeholder.empty()
+            status_placeholder.empty()
+            
+            # Force rerun
+            st.rerun()
     
     # Display recommendations (same for both methods)
     if st.session_state.recommendations:
@@ -815,15 +881,20 @@ with tab3:
                         <span class="match-score">Match: {rec['match']}%</span>
                     </div>
                     """, unsafe_allow_html=True)
-                    
-                    if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
+                   if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
                         if st.session_state.openrouter_api_key:
-                            with st.spinner("🤖 Generating AI explanation..."):
+                            # Create loading spinner with custom message
+                            with st.spinner(f"🤖 Generating AI explanation for '{rec['title']}'..."):
+                                # Add small delay for better UX
+                                time.sleep(0.3)
                                 if st.session_state.get('recommendation_type') == "text":
                                     explanation = explain_movie_by_query(st.session_state.source_query, rec['title'])
                                 else:
                                     explanation = explain_movie(st.session_state.source_movie, rec['title'])
                                 st.session_state.explanations[rec['title']] = explanation
+                                st.success("✅ Explanation generated!")
+                                time.sleep(0.5)
+                            st.rerun()
                         else:
                             st.warning("⚠️ Add OpenRouter API key for AI explanations")
                     
