@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import streamlit as st
-import pandas as pd
-import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -245,33 +242,8 @@ if 'recommendation_type' not in st.session_state:
     st.session_state.recommendation_type = None
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
-# Sidebar
-with st.sidebar:
-    st.markdown("""
-    <div style="text-align: center; padding: 1rem 0;">
-        <div style="font-size: 2.5rem;">🎬</div>
-        <div style="font-weight: 800; font-size: 1rem;">Movie Recommender</div>
-        <div style="font-size: 0.65rem; opacity: 0.8;">Hybrid AI System</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # API Configuration
-    with st.expander("🔑 API Configuration", expanded=False):
-        try:
-            if "OPENROUTER_API_KEY" in st.secrets:
-                st.session_state.openrouter_api_key = st.secrets["OPENROUTER_API_KEY"]
-                st.success("✅ API Key Loaded")
-            else:
-                api_key_input = st.text_input("OpenRouter API Key", type="password")
-                if api_key_input:
-                    st.session_state.openrouter_api_key = api_key_input
-                    st.success("✅ Key set!")
-        except:
-            pass
-        
-        if "TMDB_API_KEY" in st.secrets:
-            st.success("✅ TMDB API Ready")
-    # Helper function to extract genres (NOW AFTER IMPORTS)
+
+# Helper function to extract genres
 def extract_genres(genres_val):
     """Extract individual genres from various formats"""
     if genres_val is None or pd.isna(genres_val) or genres_val == '':
@@ -322,6 +294,34 @@ def extract_genres(genres_val):
         return [genres_str]
     
     return []
+
+# Sidebar
+with st.sidebar:
+    st.markdown("""
+    <div style="text-align: center; padding: 1rem 0;">
+        <div style="font-size: 2.5rem;">🎬</div>
+        <div style="font-weight: 800; font-size: 1rem;">Movie Recommender</div>
+        <div style="font-size: 0.65rem; opacity: 0.8;">Hybrid AI System</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # API Configuration
+    with st.expander("🔑 API Configuration", expanded=False):
+        try:
+            if "OPENROUTER_API_KEY" in st.secrets:
+                st.session_state.openrouter_api_key = st.secrets["OPENROUTER_API_KEY"]
+                st.success("✅ API Key Loaded")
+            else:
+                api_key_input = st.text_input("OpenRouter API Key", type="password")
+                if api_key_input:
+                    st.session_state.openrouter_api_key = api_key_input
+                    st.success("✅ Key set!")
+        except:
+            pass
+        
+        if "TMDB_API_KEY" in st.secrets:
+            st.success("✅ TMDB API Ready")
+    
     # Settings
     st.markdown("---")
     st.session_state.auto_explain = st.checkbox("🤖 Auto AI Explanations", value=True)
