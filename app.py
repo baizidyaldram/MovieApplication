@@ -243,10 +243,10 @@ if 'recommendation_type' not in st.session_state:
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
 
-# Helper function to extract genres
+# Helper function to extract genres (simplified version)
 def extract_genres(genres_val):
     """Extract individual genres from various formats"""
-    if genres_val is None or pd.isna(genres_val) or genres_val == '':
+    if genres_val is None or genres_val == '':
         return []
     
     # If it's already a list
@@ -272,6 +272,29 @@ def extract_genres(genres_val):
                     results.append(g)
             if results:
                 return results
+    
+    # Handle space-separated genres
+    words = genres_str.split()
+    results = []
+    for word in words:
+        word_clean = word.strip().rstrip(',').rstrip('.').rstrip(';')
+        for genre in genre_keywords:
+            if word_clean.lower() == genre.lower():
+                results.append(genre)
+                break
+            elif word_clean.lower() in genre.lower() and len(word_clean) > 3:
+                if word_clean not in results:
+                    results.append(word_clean)
+                break
+    
+    if results:
+        return results
+    
+    if len(genres_str) > 2 and len(genres_str) < 30:
+        return [genres_str]
+    
+    return []
+
     
     # Handle space-separated genres
     words = genres_str.split()
