@@ -243,9 +243,9 @@ if 'recommendation_type' not in st.session_state:
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
 
-# Helper function to extract genres
+# Helper function to extract genres from space-separated strings
 def extract_genres(genres_val):
-    """Extract individual genres from various formats"""
+    """Extract individual genres from space-separated strings like 'Action Adventure Fantasy'"""
     if genres_val is None or genres_val == '':
         return []
     
@@ -256,25 +256,18 @@ def extract_genres(genres_val):
     # Convert to string
     genres_str = str(genres_val)
     
-    # List of all possible genre names
-    all_genres = [
-        'Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Sci-Fi', 'SciFi',
-        'Comedy', 'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 
-        'Mystery', 'Animation', 'Family', 'Documentary', 'History', 
-        'War', 'Western', 'Music', 'Musical', 'Biography', 'Sport', 'Superhero',
-        'Animation', 'Children', 'Foreign', 'Independent', 'Romantic', 'Suspense'
+    # List of known genre keywords
+    known_genres = [
+        'Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Comedy', 
+        'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 'Mystery', 
+        'Animation', 'Family', 'Documentary', 'History', 'War', 'Western', 
+        'Music', 'Musical', 'Biography', 'Sport', 'Superhero', 'Sci-Fi'
     ]
-    
-    # Also add common combined genres
-    combined_genres = {
-        'Science Fiction': ['Science', 'Fiction'],
-        'Sci-Fi': ['Science', 'Fiction'],
-    }
     
     results = []
     
-    # Check for common separators first
-    for sep in ['|', ',', '/', ';', '&', '-']:
+    # Try common separators
+    for sep in ['|', ',', '/', ';', '&']:
         if sep in genres_str:
             for g in genres_str.split(sep):
                 g = g.strip()
@@ -287,62 +280,24 @@ def extract_genres(genres_val):
     words = genres_str.split()
     for word in words:
         word_clean = word.strip().rstrip(',').rstrip('.').rstrip(';')
-        # Check for exact match or partial match
-        for genre in all_genres:
+        for genre in known_genres:
             if word_clean.lower() == genre.lower():
                 results.append(genre)
                 break
-            elif genre.lower().startswith(word_clean.lower()) and len(word_clean) >= 3:
-                results.append(genre)
-                break
     
-    # If we found matches, return unique list
+    # Handle two-word genres
+    if 'Science' in genres_str and 'Fiction' in genres_str:
+        results.append('Science Fiction')
+    
     if results:
         return list(set(results))
     
-    # Handle two-word genres like "Science Fiction"
-    if 'Science' in genres_str and 'Fiction' in genres_str:
-        results.append('Science Fiction')
-    if 'Film' in genres_str and 'Noir' in genres_str:
-        results.append('Film Noir')
-    
-    if results:
-        return results
-    
-    # Fallback: return the original string as a single genre if it's reasonable length
-    if len(genres_str) > 2 and len(genres_str) < 50 and ' ' not in genres_str:
-        return [genres_str]
-    
-    # Last resort: return words that look like genres (capitalized, length > 2)
-    words = genres_str.split()
+    # If no matches, return individual words that look like genres
     for word in words:
-        if word[0].isupper() and len(word) > 2:
+        if len(word) > 2 and word[0].isupper():
             results.append(word)
     
     return results
-
-    
-    # Handle space-separated genres
-    words = genres_str.split()
-    results = []
-    for word in words:
-        word_clean = word.strip().rstrip(',').rstrip('.').rstrip(';')
-        for genre in genre_keywords:
-            if word_clean.lower() == genre.lower():
-                results.append(genre)
-                break
-            elif word_clean.lower() in genre.lower() and len(word_clean) > 3:
-                if word_clean not in results:
-                    results.append(word_clean)
-                break
-    
-    if results:
-        return results
-    
-    if len(genres_str) > 2 and len(genres_str) < 30:
-        return [genres_str]
-    
-    return []
 
 # Sidebar
 with st.sidebar:
@@ -644,11 +599,22 @@ with tab2:
     with viz_tab1:
         st.markdown("#### Most Popular Genres")
         
+        # Extract all genres from the dataset
         all_genres_list_full = []
-        for idx in range(min(len(movies), len(movies))):
+        genre_keywords = ['Action', 'Adventure', 'Fantasy', 'Science', 'Comedy', 'Drama', 
+                          'Thriller', 'Horror', 'Romance', 'Crime', 'Mystery', 'Animation', 
+                          'Family', 'Documentary', 'History', 'War', 'Western', 'Music']
+        
+        for idx in range(len(movies)):
             genres_val = movies.iloc[idx].get('genres')
-            extracted = extract_genres(genres_val)
-            all_genres_list_full.extend(extracted)
+            if genres_val and isinstance(genres_val, str):
+                words = genres_val.split()
+                for word in words:
+                    word_clean = word.strip()
+                    for genre in genre_keywords:
+                        if word_clean.lower() == genre.lower():
+                            all_genres_list_full.append(genre)
+                            break
         
         if all_genres_list_full:
             genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
@@ -678,7 +644,44 @@ with tab2:
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.warning("Could not extract genre data")
+            # Fallback: Try alternative extraction
+            st.info("Processing genre data from dataset...")
+            for idx in range(min(len(movies), 100)):
+                genres_val = movies.iloc[idx].get('genres')
+                if genres_val and isinstance(genres_val, str):
+                    words = genres_val.split()
+                    for word in words:
+                        if len(word) > 2:
+                            all_genres_list_full.append(word)
+            
+            if all_genres_list_full:
+                genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
+                genre_counts_df = pd.DataFrame({
+                    'Genre': genre_counts_full.index,
+                    'Count': genre_counts_full.values
+                })
+                
+                fig = px.bar(
+                    genre_counts_df,
+                    x='Count',
+                    y='Genre',
+                    orientation='h',
+                    title="Number of Movies by Genre",
+                    color='Count',
+                    color_continuous_scale='Viridis',
+                    text='Count'
+                )
+                fig.update_layout(
+                    height=500, 
+                    template="plotly_dark", 
+                    font=dict(color="white"),
+                    xaxis_title="Number of Movies",
+                    yaxis_title="Genre"
+                )
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Could not extract genre data. Showing sample of raw data:")
+                st.write(movies['genres'].head(10).tolist())
     
     with viz_tab2:
         st.markdown("#### Rating Distribution")
@@ -738,7 +741,7 @@ with tab2:
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
-    st.markdown("### 🎬 AI Movie Recommendations")
+    st.markdown("### 🎬 Hybrid Movie Recommendation System")
     st.markdown("Get personalized movie recommendations powered by hybrid AI")
     
     recommendation_method = st.radio(
