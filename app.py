@@ -7,6 +7,7 @@ from plotly.subplots import make_subplots
 import requests
 from datetime import datetime
 import random
+import time  # ADD THIS IMPORT
 
 # Page configuration
 st.set_page_config(
@@ -259,6 +260,14 @@ if 'recommendations' not in st.session_state:
     st.session_state.recommendations = None
 if 'auto_explain' not in st.session_state:
     st.session_state.auto_explain = True
+if 'source_movie' not in st.session_state:
+    st.session_state.source_movie = None
+if 'source_query' not in st.session_state:
+    st.session_state.source_query = None
+if 'recommendation_type' not in st.session_state:
+    st.session_state.recommendation_type = None
+if 'explanations' not in st.session_state:
+    st.session_state.explanations = {}
 
 # Sidebar
 with st.sidebar:
@@ -302,11 +311,12 @@ with st.sidebar:
 # Load data
 from src.recommender import movies, movie_to_idx, get_recommendations, get_recommendations_by_text, filter_recommendations_by_text
 from src.llm_explainer import explain_movie, initialize_llm, explain_movie_by_query
+
 if st.session_state.openrouter_api_key:
     initialize_llm(st.session_state.openrouter_api_key)
 
 # TMDB Poster function with larger size option
-def get_movie_poster(movie_title, year=None, size="w342"):  # Changed default to larger size
+def get_movie_poster(movie_title, year=None, size="w342"):
     try:
         if "TMDB_API_KEY" in st.secrets:
             api_key = st.secrets["TMDB_API_KEY"]
@@ -324,7 +334,7 @@ def get_movie_poster(movie_title, year=None, size="w342"):  # Changed default to
         pass
     return None
 
-# Create tabs - BIGGER and VISIBLE
+# Create tabs
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "🎯 DASHBOARD",
     "📊 EXPLORE DATA",
@@ -333,9 +343,8 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "ℹ️ ABOUT"
 ])
 
-# ==================== TAB 1: DASHBOARD (FIXED VERSION) ====================
+# ==================== TAB 1: DASHBOARD ====================
 with tab1:
-    # FIXED: Main title with solid background for visibility
     st.markdown("""
     <div class="main-title-container">
         <div class="main-title">🎬 Hybrid Movie Recommendation System</div>
@@ -384,20 +393,18 @@ with tab1:
         </div>
         """, unsafe_allow_html=True)
     
-    # Movie Spotlight Section - WITH LARGER POSTERS
+    # Movie Spotlight Section
     st.markdown("---")
     st.markdown("### 🌟 Movie Spotlight")
     
-    # Get random high-rated movies for spotlight
     high_rated = movies[movies['vote_average'] >= 7.5].sample(min(4, len(movies)))
     
     spotlight_cols = st.columns(4)
     for idx, (_, movie) in enumerate(high_rated.iterrows()):
         with spotlight_cols[idx]:
-            # FIXED: Larger poster - changed width to 180
             poster = get_movie_poster(movie['title'], movie.get('year', None), size="w342")
             if poster:
-                st.image(poster, use_container_width=True)  # Fills the column width
+                st.image(poster, use_container_width=True)
             else:
                 st.markdown(f"""
                 <div class="spotlight-card">
@@ -408,7 +415,6 @@ with tab1:
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Add movie title and rating below poster
             st.markdown(f"""
             <div style="text-align: center; margin-top: 0.5rem;">
                 <div style="font-weight: 600; font-size: 0.85rem;">{movie['title'][:35]}</div>
@@ -416,22 +422,19 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
     
-     # ============ QUICK GENRE DISCOVERY (FIXED) ============
+    # Quick Genre Discovery
     st.markdown("---")
     st.markdown("### 🎯 Quick Genre Discovery")
     st.markdown("Pick a genre to instantly see top-rated movies")
     
-    # Extract unique genres from dataset with better error handling
     all_genres_list = []
     try:
-        # Try different approaches to extract genres
         for idx in range(min(len(movies), 1000)):
             genres_val = movies.iloc[idx].get('genres')
             if genres_val is not None:
                 if isinstance(genres_val, list):
                     all_genres_list.extend(genres_val)
                 elif isinstance(genres_val, str):
-                    # Handle string genres like "Action|Comedy|Drama"
                     if '|' in genres_val:
                         all_genres_list.extend(genres_val.split('|'))
                     elif ',' in genres_val:
@@ -441,13 +444,9 @@ with tab1:
     except Exception as e:
         st.warning(f"Could not extract genres: {e}")
     
-    # Remove duplicates and sort
     unique_genres_list = sorted(set(all_genres_list))
-    
-    # Filter out empty strings and common non-genre values
     unique_genres_list = [g for g in unique_genres_list if g and len(g) > 1 and g not in ['', ' ', 'None', 'nan', 'Unknown']]
     
-    # Fallback genres if extraction failed
     if not unique_genres_list:
         unique_genres_list = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 
                               'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 
@@ -455,7 +454,6 @@ with tab1:
                               'War', 'Western']
         st.info("Using default genre list")
     
-    # Create genre selector with better styling
     col_genre1, col_genre2, col_genre3 = st.columns([1, 2, 1])
     with col_genre2:
         selected_genre_quick = st.selectbox(
@@ -466,7 +464,6 @@ with tab1:
         )
     
     if selected_genre_quick and selected_genre_quick != "-- Select a genre --":
-        # Filter movies by selected genre
         genre_movies = movies[
             movies['genres'].apply(lambda x: selected_genre_quick in x if isinstance(x, list) else False)
         ].sort_values('vote_average', ascending=False).head(8)
@@ -474,7 +471,6 @@ with tab1:
         if len(genre_movies) > 0:
             st.markdown(f"#### Top {len(genre_movies)} movies in **{selected_genre_quick}**")
             
-            # Display in 2 rows of 4 columns
             for row in range(0, len(genre_movies), 4):
                 cols = st.columns(4)
                 for idx, col in enumerate(cols):
@@ -501,7 +497,7 @@ with tab1:
         else:
             st.warning(f"No movies found in {selected_genre_quick} genre")
     
-    # Optional: Add "Random Movie" button for fun
+    # Random Movie Button
     st.markdown("---")
     col_rand1, col_rand2, col_rand3 = st.columns([1, 1, 1])
     with col_rand2:
@@ -511,7 +507,6 @@ with tab1:
             st.success(f"### 🎬 **{random_movie['title']}**")
             st.caption(f"⭐ {random_movie['vote_average']}/10 | 📅 {random_movie.get('year', 'N/A')}")
             
-            # Show poster for random movie
             random_poster = get_movie_poster(random_movie['title'], random_movie.get('year', None), size="w342")
             if random_poster:
                 st.image(random_poster, width=200)
@@ -521,7 +516,6 @@ with tab2:
     st.markdown("### 📊 Exploratory Data Analysis")
     st.markdown("Interactive exploration of movie dataset patterns and distributions")
     
-    # Filters
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -542,7 +536,6 @@ with tab2:
             unique_genres = sorted(set(all_genres_list))
             selected_genre = st.selectbox("Filter by Genre", ["All"] + unique_genres)
     
-    # Filter data
     filtered_df = movies.copy()
     filtered_df = filtered_df[filtered_df['vote_average'] >= min_rating]
     
@@ -554,7 +547,6 @@ with tab2:
     
     st.markdown(f"**Found {len(filtered_df)} movies matching your criteria**")
     
-    # Display movies
     display_cols = ['title', 'year', 'vote_average', 'popularity']
     available_cols = [c for c in display_cols if c in filtered_df.columns]
     
@@ -564,17 +556,14 @@ with tab2:
         hide_index=True
     )
     
-    # Visualizations
     st.markdown("---")
     st.markdown("### 📈 Data Visualizations")
     
-    # Create tabs for different visualizations
     viz_tab1, viz_tab2, viz_tab3 = st.tabs(["🎭 Genre Distribution", "⭐ Rating Distribution", "📅 Year Trend"])
     
     with viz_tab1:
         st.markdown("#### Most Popular Genres")
         
-        # Extract genres with better handling
         all_genres_list_full = []
         for idx in range(min(len(movies), 2000)):
             genres_val = movies.iloc[idx].get('genres')
@@ -639,7 +628,6 @@ with tab2:
                           annotation_text=f"Mean: {movies['vote_average'].mean():.1f}")
             st.plotly_chart(fig2, use_container_width=True)
             
-            # Rating stats
             col_r1, col_r2, col_r3, col_r4 = st.columns(4)
             with col_r1:
                 st.metric("Average Rating", f"{movies['vote_average'].mean():.1f}")
@@ -654,7 +642,6 @@ with tab2:
         st.markdown("#### Movies Over the Years")
         
         if 'year' in movies.columns:
-            # Filter valid years
             year_data = movies[movies['year'] > 1900].copy()
             year_counts = year_data['year'].value_counts().sort_index()
             
@@ -673,14 +660,13 @@ with tab2:
             fig3.update_traces(line_color='#764ba2', line_width=2, marker_size=4)
             st.plotly_chart(fig3, use_container_width=True)
             
-            # Year range info
             st.caption(f"📅 Movies in dataset range from {int(year_data['year'].min())} to {int(year_data['year'].max())}")
-# ==================== TAB 3: RECOMMENDATIONS (TEXT-BASED FIRST) ====================
+
+# ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
     st.markdown("### 🎬 AI Movie Recommendations")
     st.markdown("Get personalized movie recommendations powered by hybrid AI")
     
-    # Create two methods: Text-based OR Movie-based
     recommendation_method = st.radio(
         "How would you like to get recommendations?",
         ["✍️ Describe what you want", "🎬 Pick a movie you like"],
@@ -689,7 +675,6 @@ with tab3:
     )
     
     if recommendation_method == "✍️ Describe what you want":
-        # TEXT-BASED RECOMMENDATION
         st.markdown("""
         <div style="background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
                     padding: 1rem; border-radius: 10px; margin-bottom: 1rem;">
@@ -710,26 +695,22 @@ with tab3:
         
         if st.button("🔍 Find Movies Based on Your Description", type="primary", use_container_width=True):
             if user_query.strip():
-                # Create a placeholder for progress
                 progress_placeholder = st.empty()
                 status_placeholder = st.empty()
                 
                 with progress_placeholder.container():
                     progress_bar = st.progress(0)
                     
-                    # Step 1: Analyzing query
                     status_placeholder.info("🔍 Analyzing your movie preferences...")
                     progress_bar.progress(20)
                     time.sleep(0.3)
                     
-                    # Step 2: Finding matches
                     status_placeholder.info("🎯 Finding movies that match your description...")
                     progress_bar.progress(40)
                     text_recs = get_recommendations_by_text(user_query, n_recs_text)
                     progress_bar.progress(60)
                     time.sleep(0.2)
                     
-                    # Step 3: Processing results
                     status_placeholder.info("📊 Processing recommendations...")
                     st.session_state.recommendations = text_recs
                     st.session_state.source_query = user_query
@@ -738,61 +719,65 @@ with tab3:
                     progress_bar.progress(70)
                     time.sleep(0.2)
                     
-                    # Step 4: Generating AI explanations (if enabled)
                     if st.session_state.auto_explain and st.session_state.openrouter_api_key:
                         status_placeholder.info("🤖 Generating AI explanations (this may take a moment)...")
                         for i, rec in enumerate(st.session_state.recommendations):
                             explanation = explain_movie_by_query(user_query, rec['title'])
                             st.session_state.explanations[rec['title']] = explanation
-                            # Update progress for each explanation
                             progress = 70 + int((i + 1) / len(st.session_state.recommendations) * 30)
                             progress_bar.progress(progress)
                             time.sleep(0.1)
                     else:
                         progress_bar.progress(100)
                     
-                    # Step 5: Complete
                     status_placeholder.success("✅ Recommendations ready!")
                     progress_bar.progress(100)
                     time.sleep(0.5)
                 
-                # Clear the progress indicators
                 progress_placeholder.empty()
                 status_placeholder.empty()
-                
-                # Force rerun to show results
                 st.rerun()
             else:
                 st.warning("⚠️ Please describe what kind of movie you want to watch!")
+    
+    else:
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            movie_list = sorted(movies["title"].tolist())
+            source_movie = st.selectbox("Choose a movie you love", movie_list)
+        
+        with col2:
+            n_recs_movie = st.select_slider("Number of recommendations", options=[3, 5, 7, 10], value=5)
+        
+        custom_query = st.text_input(
+            "🔍 Or add extra preferences", 
+            placeholder="e.g., 'funny', 'romantic', 'recent movies only'..."
+        )
         
         if st.button("🎯 Get Recommendations Based on This Movie", type="primary", use_container_width=True):
-            # Create a placeholder for progress
             progress_placeholder = st.empty()
             status_placeholder = st.empty()
             
             with progress_placeholder.container():
                 progress_bar = st.progress(0)
                 
-                # Step 1: Analyzing movie
                 status_placeholder.info(f"🎬 Analyzing '{source_movie}'...")
                 progress_bar.progress(20)
                 time.sleep(0.3)
                 
-                # Step 2: Finding similar movies
                 status_placeholder.info("🔍 Finding similar movies using hybrid AI...")
                 progress_bar.progress(40)
                 recs = get_recommendations(source_movie, n_recs_movie * 2)
                 progress_bar.progress(60)
                 time.sleep(0.2)
                 
-                # Step 3: Applying filters (if any)
                 if custom_query:
                     status_placeholder.info(f"🎯 Filtering with: '{custom_query}'...")
                     recs = filter_recommendations_by_text(recs, custom_query)
                     progress_bar.progress(70)
                     time.sleep(0.2)
                 
-                # Step 4: Processing results
                 status_placeholder.info("📊 Processing recommendations...")
                 st.session_state.recommendations = recs[:n_recs_movie]
                 st.session_state.source_movie = source_movie
@@ -802,7 +787,6 @@ with tab3:
                 progress_bar.progress(80)
                 time.sleep(0.2)
                 
-                # Step 5: Generating AI explanations
                 if st.session_state.auto_explain and st.session_state.openrouter_api_key:
                     status_placeholder.info("🤖 Generating AI explanations (this may take a moment)...")
                     for i, rec in enumerate(st.session_state.recommendations):
@@ -814,21 +798,16 @@ with tab3:
                 else:
                     progress_bar.progress(100)
                 
-                # Step 6: Complete
                 status_placeholder.success("✅ Recommendations ready!")
                 progress_bar.progress(100)
                 time.sleep(0.5)
             
-            # Clear progress indicators
             progress_placeholder.empty()
             status_placeholder.empty()
-            
-            # Force rerun
             st.rerun()
     
-    # Display recommendations (same for both methods)
+    # Display recommendations
     if st.session_state.recommendations:
-        # Show context header
         if st.session_state.get('recommendation_type') == "text":
             st.markdown(f"""
             <div style="text-align: center; margin: 1.5rem 0;">
@@ -838,217 +817,4 @@ with tab3:
         else:
             st.markdown(f"""
             <div style="text-align: center; margin: 1.5rem 0;">
-                <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_movie}</span></h2>
-                {f'<p style="color: #a0a0c0;">Extra: {st.session_state.source_query}</p>' if st.session_state.get('source_query') else ''}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Display recommendations in a 2-column grid
-        cols = st.columns(2)
-        for idx, rec in enumerate(st.session_state.recommendations):
-            with cols[idx % 2]:
-                poster_url = get_movie_poster(rec['title'], rec.get('year', None), size="w342")
-                
-                col_post, col_info = st.columns([1.2, 2])
-                
-                with col_post:
-                    if poster_url:
-                        st.image(poster_url, use_container_width=True)
-                    else:
-                        st.markdown(f"""
-                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                                    border-radius: 8px; aspect-ratio: 2/3;
-                                    display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                            🎬
-                        </div>
-                        """, unsafe_allow_html=True)
-                
-                with col_info:
-                    st.markdown(f"""
-                    <div style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">
-                        {idx + 1}. {rec['title']}
-                    </div>
-                    <div style="font-size: 0.85rem;">⭐ {rec['rating']}/10 | 📅 {rec['year']}</div>
-                    """, unsafe_allow_html=True)
-                    
-                    genres_html = ""
-                    for g in rec.get('genres', ['Various'])[:3]:
-                        genres_html += f'<span class="genre-badge">{g}</span>'
-                    st.markdown(genres_html, unsafe_allow_html=True)
-                    
-                    st.markdown(f"""
-                    <div style="margin-top: 0.5rem;">
-                        <span class="match-score">Match: {rec['match']}%</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                   if st.button(f"💡 Explain why", key=f"exp_{idx}_{rec['title']}"):
-                        if st.session_state.openrouter_api_key:
-                            # Create loading spinner with custom message
-                            with st.spinner(f"🤖 Generating AI explanation for '{rec['title']}'..."):
-                                # Add small delay for better UX
-                                time.sleep(0.3)
-                                if st.session_state.get('recommendation_type') == "text":
-                                    explanation = explain_movie_by_query(st.session_state.source_query, rec['title'])
-                                else:
-                                    explanation = explain_movie(st.session_state.source_movie, rec['title'])
-                                st.session_state.explanations[rec['title']] = explanation
-                                st.success("✅ Explanation generated!")
-                                time.sleep(0.5)
-                            st.rerun()
-                        else:
-                            st.warning("⚠️ Add OpenRouter API key for AI explanations")
-                    
-                    if rec['title'] in st.session_state.get('explanations', {}):
-                        with st.expander("💡 AI Explanation", expanded=True):
-                            st.info(st.session_state.explanations[rec['title']])
-                
-                st.markdown("---")
-# ==================== TAB 4: MODEL INSIGHTS ====================
-with tab4:
-    st.markdown("### 🔬 Model Insights & Performance")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        <div class="glass-card">
-            <h3>🎯 Hybrid Model Architecture</h3>
-            <p>Our recommendation engine combines multiple AI techniques:</p>
-            <ul>
-                <li><strong>SBERT</strong> - Semantic understanding of plots</li>
-                <li><strong>Latent SVD</strong> - Hidden pattern detection</li>
-                <li><strong>XGBoost</strong> - ML-based re-ranking</li>
-                <li><strong>RRF</strong> - Reciprocal Rank Fusion</li>
-                <li><strong>OpenRouter AI</strong> - Natural language explanations</li>
-            </ul>
-            <div style="margin-top: 1rem; padding: 1rem; background: rgba(102,126,234,0.2); border-radius: 0.5rem;">
-                <strong>Formula:</strong>
-                <code>Score = 50% SBERT + 25% XGBoost + 15% Latent + 10% RRF</code>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="glass-card">
-            <h3>📊 Model Performance Metrics</h3>
-            <ul>
-                <li><strong>Accuracy:</strong> 85%+</li>
-                <li><strong>Precision:</strong> 0.83</li>
-                <li><strong>Recall:</strong> 0.81</li>
-                <li><strong>F1 Score:</strong> 0.82</li>
-                <li><strong>AUC-ROC:</strong> 0.90</li>
-            </ul>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Feature importance chart
-    st.markdown("---")
-    st.markdown("### 📈 Feature Importance")
-    
-    feature_data = {
-        'Feature': ['Content Similarity (SBERT)', 'XGBoost Score', 'Latent Features (SVD)', 
-                    'Popularity', 'Rating', 'RRF Score'],
-        'Importance': [50, 25, 15, 5, 3, 2]
-    }
-    df_features = pd.DataFrame(feature_data)
-    
-    fig = px.bar(df_features, x='Importance', y='Feature', orientation='h',
-                  title="Model Weight Distribution",
-                  color='Importance', color_continuous_scale='Purples')
-    fig.update_layout(height=400, template="plotly_dark", font=dict(color="white"))
-    st.plotly_chart(fig, use_container_width=True)
-
-# ==================== TAB 5: ABOUT ====================
-with tab5:
-    st.markdown("""
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <div style="font-size: 3rem;">🎬</div>
-        <h1 style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                   -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Hybrid Movie Recommendation System
-        </h1>
-        <p style="font-size: 1rem;">Powered by Generative AI</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("""
-        ### 🚀 Our Mission
-        
-        This system leverages cutting-edge artificial intelligence to help you discover movies you'll love. 
-        Our hybrid recommendation system combines multiple AI techniques to provide accurate, 
-        diverse, and explainable recommendations.
-        
-        ### 🧠 Technologies Used
-        
-        - **Sentence-BERT**: Semantic understanding of movie plots
-        - **Latent Semantic Analysis**: Hidden pattern detection
-        - **XGBoost**: Machine learning re-ranking
-        - **OpenRouter AI**: Natural language explanations (GPT-OSS-120B)
-        - **TMDB**: High-quality movie posters
-        
-        ### 📊 Dataset
-        
-        - **4,375 movies** with complete metadata
-        - Release years: 1916-2016
-        - Includes genres, ratings, popularity scores
-        """)
-    
-    with col2:
-        st.markdown("""
-        ### 🎯 Key Features
-        
-        - ✅ **Hybrid AI Recommendations**
-        - ✅ **Natural Language Explanations**
-        - ✅ **Interactive Data Explorer**
-        - ✅ **Beautiful Movie Posters**
-        - ✅ **Real-time Genre Analytics**
-        - ✅ **Dark Theme UI**
-        
-        ### 📈 Evaluation Results
-        
-        | Metric | Score |
-        |--------|-------|
-        | Accuracy | 85%+ |
-        | Precision | 0.83 |
-        | Recall | 0.81 |
-        | F1 Score | 0.82 |
-        
-        ### 🔗 Links
-        
-        - [GitHub Repository](https://github.com/baizidyaldram/movieapplication)
-        - [OpenRouter API](https://openrouter.io)
-        - [TMDB](https://www.themoviedb.org)
-        """)
-    
-    # Legacy System Performance
-    st.markdown("---")
-    st.markdown("### 📊 Legacy System Performance Comparison")
-    
-    col1, col2, col3 = st.columns(3)
-    
-    with col1:
-        st.markdown("""
-        <div class="metric-card">
-            <div style="font-size: 1.2rem;">📊</div>
-            <div style="font-weight: 700;">Content-Based</div>
-            <div>Accuracy: 72%</div>
-            <div>Precision: 0.70</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown("""
-        <div class="metric-card">
-            <div style="font-size: 1.2rem;">🤖</div>
-            <div style="font-weight: 700;">Hybrid (Current)</div>
-            <div>Accuracy: 85%+</div>
-            <div>Precision: 0.83</div>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown("")
+                <h2>🎯 Top recommendations based on <span style="color: #667eea;">{st.session_state.source_m
