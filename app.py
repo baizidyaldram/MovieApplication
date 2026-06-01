@@ -300,9 +300,8 @@ with st.sidebar:
         st.metric("⭐ Avg Rating", f"{movies['vote_average'].mean():.1f}")
 
 # Load data
-from src.recommender import movies, movie_to_idx, get_recommendations
-from src.llm_explainer import explain_movie, initialize_llm
-
+from src.recommender import movies, movie_to_idx, get_recommendations, get_recommendations_by_text, filter_recommendations_by_text
+from src.llm_explainer import explain_movie, initialize_llm, explain_movie_by_query
 if st.session_state.openrouter_api_key:
     initialize_llm(st.session_state.openrouter_api_key)
 
