@@ -7,8 +7,6 @@ from plotly.subplots import make_subplots
 import requests
 from datetime import datetime
 import random
-import matplotlib.pyplot as plt
-import seaborn as sns
 
 # Page configuration
 st.set_page_config(
@@ -467,9 +465,14 @@ with tab2:
     
     with col1:
         st.markdown("#### 🎭 Genre Distribution")
+        all_genres_list_full = []
+        for genres in movies['genres'].dropna().head(1000):
+            if isinstance(genres, list):
+                all_genres_list_full.extend(genres)
+        genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(10)
         genre_counts_df = pd.DataFrame({
-            'Genre': genre_counts.index,
-            'Count': genre_counts.values
+            'Genre': genre_counts_full.index,
+            'Count': genre_counts_full.values
         })
         fig = px.bar(
             genre_counts_df,
@@ -484,30 +487,7 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True)
     
     with col2:
-        st.markdown("#### 📅 Movies Released Per Year")
-        if 'release_year' in filtered_df.columns:
-            yearly_counts = filtered_df['release_year'].value_counts().sort_index()
-            fig = px.line(
-                x=yearly_counts.index,
-                y=yearly_counts.values,
-                title="Movies Released Per Year",
-                markers=True
-            )
-            fig.update_layout(
-                xaxis_title="Year",
-                yaxis_title="Number of Movies",
-                template="plotly_dark",
-                height=400
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Year data not available for this visualization")
-    
-    # Rating Analysis
-    st.markdown("#### ⭐ Rating Analysis")
-    col1, col2 = st.columns(2)
-    
-    with col1:
+        st.markdown("#### 📅 Rating Distribution")
         fig = px.box(
             filtered_df,
             y='vote_average',
@@ -516,23 +496,24 @@ with tab2:
         fig.update_layout(template="plotly_dark", height=400)
         st.plotly_chart(fig, use_container_width=True)
     
-    with col2:
-        fig = px.scatter(
-            filtered_df.head(500),
-            x='vote_count',
-            y='vote_average',
-            title="Vote Count vs Average Rating",
-            trendline="ols",
-            color_discrete_sequence=['#667eea']
-        )
-        fig.update_layout(
-            xaxis_title="Vote Count (Log Scale)",
-            yaxis_title="Average Rating",
-            template="plotly_dark",
-            height=400
-        )
-        fig.update_xaxis(type="log")
-        st.plotly_chart(fig, use_container_width=True)
+    # Vote Count vs Rating
+    st.markdown("#### 📊 Vote Count vs Average Rating")
+    fig = px.scatter(
+        filtered_df.head(500),
+        x='vote_count',
+        y='vote_average',
+        title="Relationship between Vote Count and Rating",
+        trendline="ols",
+        color_discrete_sequence=['#667eea']
+    )
+    fig.update_layout(
+        xaxis_title="Vote Count (Log Scale)",
+        yaxis_title="Average Rating",
+        template="plotly_dark",
+        height=450
+    )
+    fig.update_xaxis(type="log")
+    st.plotly_chart(fig, use_container_width=True)
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
@@ -790,6 +771,6 @@ st.markdown("""
     <div style="font-size: 0.7rem; margin-top: 0.5rem;">
         Powered by SBERT, SVD, XGBoost &amp; OpenRouter AI | Movie posters by TMDB
     </div>
-    <div style="font-size: 0.7rem;">© 2024 - Built with Streamlit</div>
+    <div style="font-size: 0.7rem;">2024 - Built with Streamlit</div>
 </div>
 """, unsafe_allow_html=True)
