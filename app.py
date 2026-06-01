@@ -243,62 +243,6 @@ if 'recommendation_type' not in st.session_state:
 if 'explanations' not in st.session_state:
     st.session_state.explanations = {}
 
-# Helper function to extract genres from space-separated strings
-def extract_genres(genres_val):
-    """Extract individual genres from space-separated strings like 'Action Adventure Fantasy'"""
-    if genres_val is None or genres_val == '':
-        return []
-    
-    # If it's already a list
-    if isinstance(genres_val, list):
-        return genres_val
-    
-    # Convert to string
-    genres_str = str(genres_val)
-    
-    # List of known genre keywords
-    known_genres = [
-        'Action', 'Adventure', 'Fantasy', 'Science', 'Fiction', 'Comedy', 
-        'Drama', 'Thriller', 'Horror', 'Romance', 'Crime', 'Mystery', 
-        'Animation', 'Family', 'Documentary', 'History', 'War', 'Western', 
-        'Music', 'Musical', 'Biography', 'Sport', 'Superhero', 'Sci-Fi'
-    ]
-    
-    results = []
-    
-    # Try common separators
-    for sep in ['|', ',', '/', ';', '&']:
-        if sep in genres_str:
-            for g in genres_str.split(sep):
-                g = g.strip()
-                if g and len(g) > 1:
-                    results.append(g)
-            if results:
-                return list(set(results))
-    
-    # Split by space and match against known genres
-    words = genres_str.split()
-    for word in words:
-        word_clean = word.strip().rstrip(',').rstrip('.').rstrip(';')
-        for genre in known_genres:
-            if word_clean.lower() == genre.lower():
-                results.append(genre)
-                break
-    
-    # Handle two-word genres
-    if 'Science' in genres_str and 'Fiction' in genres_str:
-        results.append('Science Fiction')
-    
-    if results:
-        return list(set(results))
-    
-    # If no matches, return individual words that look like genres
-    for word in words:
-        if len(word) > 2 and word[0].isupper():
-            results.append(word)
-    
-    return results
-
 # Sidebar
 with st.sidebar:
     st.markdown("""
@@ -372,7 +316,7 @@ tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "ℹ️ ABOUT"
 ])
 
-# ==================== TAB 1: DASHBOARD ====================
+# ==================== TAB 1: DASHBOARD (SIMPLIFIED - NO GENRE PICKER) ====================
 with tab1:
     st.markdown("""
     <div class="main-title-container">
@@ -450,73 +394,19 @@ with tab1:
             </div>
             """, unsafe_allow_html=True)
     
-    # Quick Genre Discovery
+    # Dataset Preview Section (instead of genre picker)
     st.markdown("---")
-    st.markdown("### 🎯 Quick Genre Discovery")
-    st.markdown("Pick a genre to instantly see top-rated movies")
+    st.markdown("### 📊 Dataset Preview")
+    st.markdown("Browse the first few movies in our collection")
     
-    # Extract unique genres using the helper function
-    all_genres_list = []
-    for idx in range(min(len(movies), 2000)):
-        genres_val = movies.iloc[idx].get('genres')
-        extracted = extract_genres(genres_val)
-        all_genres_list.extend(extracted)
+    preview_cols = ['title', 'year', 'vote_average', 'popularity']
+    available_preview_cols = [c for c in preview_cols if c in movies.columns]
     
-    unique_genres_list = sorted(set(all_genres_list))
-    unique_genres_list = [g for g in unique_genres_list if g and len(g) > 1 and g not in ['', ' ', 'None', 'nan', 'Unknown', 'and', 'the', 'of']]
-    
-    if not unique_genres_list:
-        unique_genres_list = ['Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 
-                              'Drama', 'Family', 'Fantasy', 'History', 'Horror', 'Music', 
-                              'Mystery', 'Romance', 'Science Fiction', 'Thriller', 'War', 'Western']
-    
-    col_genre1, col_genre2, col_genre3 = st.columns([1, 2, 1])
-    with col_genre2:
-        selected_genre_quick = st.selectbox(
-            "🎭 Choose a genre",
-            options=["-- Select a genre --"] + unique_genres_list,
-            index=0,
-            help="Select a genre to see top-rated movies"
-        )
-    
-    if selected_genre_quick and selected_genre_quick != "-- Select a genre --":
-        # Filter movies by selected genre
-        genre_filtered = []
-        for idx, row in movies.iterrows():
-            genres_val = row.get('genres')
-            extracted = extract_genres(genres_val)
-            if selected_genre_quick in extracted:
-                genre_filtered.append(row)
-        
-        if genre_filtered:
-            genre_movies = pd.DataFrame(genre_filtered).sort_values('vote_average', ascending=False).head(8)
-            st.markdown(f"#### Top {len(genre_movies)} movies in **{selected_genre_quick}**")
-            
-            for row in range(0, len(genre_movies), 4):
-                cols = st.columns(4)
-                for idx, col in enumerate(cols):
-                    if row + idx < len(genre_movies):
-                        movie = genre_movies.iloc[row + idx]
-                        with col:
-                            poster = get_movie_poster(movie['title'], movie.get('year', None), size="w342")
-                            if poster:
-                                st.image(poster, use_container_width=True)
-                            else:
-                                st.markdown(f"""
-                                <div style="background: linear-gradient(135deg, #667eea, #764ba2); 
-                                            border-radius: 10px; padding: 1rem; text-align: center;">
-                                    <div style="font-size: 2rem;">🎬</div>
-                                    <div style="font-weight: 600; font-size: 0.8rem;">{movie['title'][:25]}</div>
-                                </div>
-                                """, unsafe_allow_html=True)
-                            st.markdown(f"""
-                            <div style="text-align: center;">
-                                <div style="font-weight: 600; font-size: 0.8rem;">{movie['title'][:30]}</div>
-                                <div style="font-size: 0.7rem; color: #FFD700;">⭐ {movie['vote_average']:.1f}/10</div>
-                            </div>
-                            """, unsafe_allow_html=True)
-        else:
-            st.warning(f"No movies found in {selected_genre_quick} genre")
+    st.dataframe(
+        movies[available_preview_cols].head(10),
+        use_container_width=True,
+        hide_index=True
+    )
     
     # Random Movie Button
     st.markdown("---")
@@ -531,13 +421,13 @@ with tab1:
             if random_poster:
                 st.image(random_poster, width=200)
 
-# ==================== TAB 2: EXPLORE DATA ====================
+# ==================== TAB 2: EXPLORE DATA (SIMPLIFIED - NO GENRE CHART) ====================
 with tab2:
     st.markdown("### 📊 Exploratory Data Analysis")
     st.markdown("Interactive exploration of movie dataset patterns and distributions")
     
-    # Filters
-    col1, col2, col3 = st.columns(3)
+    # Filters (simplified - removed genre filter)
+    col1, col2 = st.columns(2)
     
     with col1:
         min_rating = st.slider("Minimum Rating", 0.0, 10.0, 5.0, 0.5)
@@ -548,32 +438,12 @@ with tab2:
             max_year = int(movies['year'].max())
             year_range = st.slider("Year Range", min_year, max_year, (min_year, max_year))
     
-    with col3:
-        if 'genres' in movies.columns:
-            all_genres_list = []
-            for idx in range(min(len(movies), 1000)):
-                genres_val = movies.iloc[idx].get('genres')
-                extracted = extract_genres(genres_val)
-                all_genres_list.extend(extracted)
-            unique_genres = sorted(set(all_genres_list))
-            unique_genres = [g for g in unique_genres if g and len(g) > 1]
-            selected_genre = st.selectbox("Filter by Genre", ["All"] + unique_genres)
-    
     # Filter data
     filtered_df = movies.copy()
     filtered_df = filtered_df[filtered_df['vote_average'] >= min_rating]
     
     if 'year' in movies.columns and 'year_range' in locals():
         filtered_df = filtered_df[(filtered_df['year'] >= year_range[0]) & (filtered_df['year'] <= year_range[1])]
-    
-    if selected_genre != "All" and 'genres' in movies.columns:
-        genre_filtered_indices = []
-        for idx in range(len(filtered_df)):
-            genres_val = filtered_df.iloc[idx].get('genres')
-            extracted = extract_genres(genres_val)
-            if selected_genre in extracted:
-                genre_filtered_indices.append(idx)
-        filtered_df = filtered_df.iloc[genre_filtered_indices]
     
     st.markdown(f"**Found {len(filtered_df)} movies matching your criteria**")
     
@@ -590,100 +460,13 @@ with tab2:
     else:
         st.info("No movies match your filters")
     
-    # Visualizations
+    # Visualizations (simplified - removed genre distribution)
     st.markdown("---")
     st.markdown("### 📈 Data Visualizations")
     
-    viz_tab1, viz_tab2, viz_tab3 = st.tabs(["🎭 Genre Distribution", "⭐ Rating Distribution", "📅 Year Trend"])
+    viz_tab1, viz_tab2 = st.tabs(["⭐ Rating Distribution", "📅 Year Trend"])
     
     with viz_tab1:
-        st.markdown("#### Most Popular Genres")
-        
-        # Extract all genres from the dataset
-        all_genres_list_full = []
-        genre_keywords = ['Action', 'Adventure', 'Fantasy', 'Science', 'Comedy', 'Drama', 
-                          'Thriller', 'Horror', 'Romance', 'Crime', 'Mystery', 'Animation', 
-                          'Family', 'Documentary', 'History', 'War', 'Western', 'Music']
-        
-        for idx in range(len(movies)):
-            genres_val = movies.iloc[idx].get('genres')
-            if genres_val and isinstance(genres_val, str):
-                words = genres_val.split()
-                for word in words:
-                    word_clean = word.strip()
-                    for genre in genre_keywords:
-                        if word_clean.lower() == genre.lower():
-                            all_genres_list_full.append(genre)
-                            break
-        
-        if all_genres_list_full:
-            genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
-            genre_counts_df = pd.DataFrame({
-                'Genre': genre_counts_full.index,
-                'Count': genre_counts_full.values
-            })
-            
-            fig = px.bar(
-                genre_counts_df,
-                x='Count',
-                y='Genre',
-                orientation='h',
-                title="Number of Movies by Genre",
-                color='Count',
-                color_continuous_scale='Viridis',
-                text='Count'
-            )
-            fig.update_traces(textposition='outside')
-            fig.update_layout(
-                height=500, 
-                template="plotly_dark", 
-                font=dict(color="white"),
-                xaxis_title="Number of Movies",
-                yaxis_title="Genre",
-                showlegend=False
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            # Fallback: Try alternative extraction
-            st.info("Processing genre data from dataset...")
-            for idx in range(min(len(movies), 100)):
-                genres_val = movies.iloc[idx].get('genres')
-                if genres_val and isinstance(genres_val, str):
-                    words = genres_val.split()
-                    for word in words:
-                        if len(word) > 2:
-                            all_genres_list_full.append(word)
-            
-            if all_genres_list_full:
-                genre_counts_full = pd.Series(all_genres_list_full).value_counts().head(12)
-                genre_counts_df = pd.DataFrame({
-                    'Genre': genre_counts_full.index,
-                    'Count': genre_counts_full.values
-                })
-                
-                fig = px.bar(
-                    genre_counts_df,
-                    x='Count',
-                    y='Genre',
-                    orientation='h',
-                    title="Number of Movies by Genre",
-                    color='Count',
-                    color_continuous_scale='Viridis',
-                    text='Count'
-                )
-                fig.update_layout(
-                    height=500, 
-                    template="plotly_dark", 
-                    font=dict(color="white"),
-                    xaxis_title="Number of Movies",
-                    yaxis_title="Genre"
-                )
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.warning("Could not extract genre data. Showing sample of raw data:")
-                st.write(movies['genres'].head(10).tolist())
-    
-    with viz_tab2:
         st.markdown("#### Rating Distribution")
         
         if 'vote_average' in movies.columns:
@@ -715,7 +498,7 @@ with tab2:
             with col_r4:
                 st.metric("Lowest Rating", f"{movies['vote_average'].min():.1f}")
     
-    with viz_tab3:
+    with viz_tab2:
         st.markdown("#### Movies Over the Years")
         
         if 'year' in movies.columns:
@@ -738,6 +521,7 @@ with tab2:
             st.plotly_chart(fig3, use_container_width=True)
             
             st.caption(f"📅 Movies in dataset range from {int(year_data['year'].min())} to {int(year_data['year'].max())}")
+
 
 # ==================== TAB 3: RECOMMENDATIONS ====================
 with tab3:
