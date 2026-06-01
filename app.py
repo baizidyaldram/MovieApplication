@@ -585,13 +585,12 @@ with tab3:
                         else:
                             st.warning("⚠️ Add OpenRouter API key for AI explanations")
                 
-                # Show explanation if available
+                # Show explanation if available (THIS LINE WAS CAUSING THE ERROR)
                 if rec['title'] in st.session_state.get('explanations', {}):
                     with st.expander("💡 AI Explanation", expanded=True):
                         st.info(st.session_state['explanations'][rec['title']])
                 
                 st.markdown("---")
-                    st.info(st.session_state['explanations'][rec['title']])
 
 # ==================== TAB 4: EVALUATION ====================
 with tab4:
