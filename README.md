@@ -1,313 +1,332 @@
-🎬 Hybrid Movie Recommendation System
+# 🎬 Hybrid Movie Recommendation System
 
-An AI-powered Hybrid Movie Recommendation System that combines Content-Based Filtering, Latent Semantic Analysis (SVD), Reciprocal Rank Fusion (RRF), XGBoost Re-Ranking, and Generative AI Explanations to deliver accurate, explainable, and personalized movie recommendations.
+> An AI-powered recommendation engine combining Content-Based Filtering, Latent Semantic Analysis, Reciprocal Rank Fusion, XGBoost Re-Ranking, and Generative AI Explanations — delivering accurate, explainable, and personalized movie recommendations.
 
-Users can either describe their preferences in natural language or select a movie they already enjoy to receive intelligent, context-aware recommendations with AI-generated explanations.
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)](https://streamlit.io)
+[![License](https://img.shields.io/badge/License-Educational-green?style=flat-square)](#license)
+[![Dataset](https://img.shields.io/badge/Dataset-4%2C375%20Movies-orange?style=flat-square)](#dataset)
 
-Built using Python, Machine Learning, Generative AI, and deployed through Streamlit.
+---
 
-🚀 Features
-🎯 Dual Recommendation Methods
-✍️ Text-Based Search
+## 📌 Overview
 
-Describe what you're looking for in natural language.
+Users can either **describe their preferences in natural language** or **select a movie they already enjoy** to receive intelligent, context-aware recommendations with AI-generated explanations.
 
-Examples:
+The system fuses multiple ML techniques into a single hybrid pipeline, then uses a large language model to explain *why* each movie was recommended — making it both accurate and interpretable.
 
-"funny action movies with high ratings"
-"romantic dramas from the 2010s"
-"sci-fi thrillers like Inception"
-🎬 Movie-Based Search
+---
 
-Select a movie you already enjoy and receive similar recommendations based on content and latent patterns.
+## 🚀 Features
 
-🧠 Hybrid Recommendation Engine
+### 🎯 Dual Recommendation Modes
 
-The recommendation pipeline combines multiple techniques to improve recommendation quality:
+| Mode | How It Works |
+|------|-------------|
+| **✍️ Text-Based Search** | Describe what you want: *"sci-fi thrillers like Inception"*, *"romantic dramas from the 2010s"* |
+| **🎬 Movie-Based Search** | Pick a movie you love and get similar recommendations based on content and latent patterns |
 
-Content-Based Filtering
-Sentence-BERT embeddings (all-MiniLM-L6-v2)
-Semantic understanding of movie plots and overviews
-Latent Semantic Analysis
-TruncatedSVD for hidden feature extraction
-Captures deeper relationships between movies
-Reciprocal Rank Fusion (RRF)
-Combines rankings from multiple recommendation sources
-XGBoost Re-Ranking
-Machine learning-based ranking optimization
-Improves recommendation ordering
-Hybrid Weighted Scoring
-Component	Weight
-SBERT Content Similarity	50%
-XGBoost Score	25%
-Latent Similarity (SVD)	15%
-RRF Score	10%
-🤖 Explainable AI Recommendations
+### 🧠 Hybrid Recommendation Pipeline
 
-The system integrates OpenRouter GPT-OSS-120B to generate human-readable explanations for each recommendation.
+```
+User Input
+    │
+    ├── Text Query ──► SBERT Encoding ──► Semantic Similarity
+    │
+    └── Movie Title ─► Content Matching ─► Latent Similarity (SVD)
+                                │
+                         RRF Score Fusion
+                                │
+                       XGBoost Re-Ranking
+                                │
+                      Hybrid Weighted Score
+                                │
+                     Top-N Recommendations
+                                │
+                  OpenRouter GPT Explanation
+                                │
+                   Results + Movie Posters (TMDB)
+```
 
-Explanation Highlights
-Genre similarity
-Plot and storyline connections
-Tone and atmosphere matching
-Audience appeal
-Recommendation reasoning
-📊 Interactive Dashboard
+### ⚖️ Hybrid Weighted Scoring
+
+| Component | Weight |
+|-----------|--------|
+| SBERT Content Similarity | **50%** |
+| XGBoost Re-Ranking Score | **25%** |
+| Latent Similarity (SVD) | **15%** |
+| RRF Score | **10%** |
+
+### 🤖 Explainable AI
+
+Powered by **OpenRouter GPT-OSS-120B**, each recommendation includes a human-readable explanation covering:
+
+- Genre and tone similarity
+- Plot and storyline connections
+- Atmosphere matching
+- Audience appeal reasoning
+
+### 📊 Interactive Dashboard
 
 The Streamlit dashboard includes:
+- 🎬 Movie Spotlight section
+- 📈 Exploratory Data Analysis (EDA)
+- ⭐ Rating distribution visualizations
+- 📅 Release year trend analysis
+- 📊 Model performance metrics
 
-🎬 Movie Spotlight section
-📈 Interactive Exploratory Data Analysis (EDA)
-⭐ Rating distribution visualizations
-📅 Release year trend analysis
-📊 Model performance metrics
-ℹ️ About Project section
-📈 Model Performance
-Metric	Score
-Accuracy	85%+
-Precision	0.83
-Recall	0.81
-F1 Score	0.82
-AUC-ROC	0.90
-🏗️ System Architecture
-User Input (Text Description OR Movie Selection)
-                    │
-                    ▼
-        ┌─────────────────────┐
-        │ Recommendation Mode │
-        └─────────────────────┘
-             │           │
-             ▼           ▼
+---
 
-     Text-Based      Movie-Based
-       Query           Query
-         │               │
-         ▼               ▼
+## 📈 Model Performance
 
-   SBERT Encoding   Content Similarity
-         │               │
-         ▼               ▼
+| Metric | Score |
+|--------|-------|
+| Accuracy | **85%+** |
+| Precision | **0.83** |
+| Recall | **0.81** |
+| F1 Score | **0.82** |
+| AUC-ROC | **0.90** |
 
-  Semantic Match   Latent Similarity
-         │               │
-         ▼               ▼
+---
 
-  Rating Boost       RRF Fusion
-         │               │
-         └──────┬────────┘
-                ▼
+## 🛠️ Tech Stack
 
-       XGBoost Re-Ranking
-                │
-                ▼
+| Category | Technology |
+|----------|-----------|
+| Language | Python 3.9+ |
+| Web Framework | Streamlit |
+| NLP Embeddings | Sentence-BERT (`all-MiniLM-L6-v2`) |
+| Latent Features | TruncatedSVD (Scikit-Learn) |
+| Re-Ranking | XGBoost |
+| Rank Fusion | Reciprocal Rank Fusion (RRF) |
+| Explainable AI | OpenRouter GPT-OSS-120B |
+| Data Processing | Pandas, NumPy |
+| Visualization | Plotly |
+| Movie Posters | TMDB API |
 
-      Hybrid Weighted Score
-                │
-                ▼
+---
 
-      Top-N Recommendations
-                │
-                ▼
+## 📂 Project Structure
 
-     OpenRouter AI Explanation
-                │
-                ▼
-
-      Results + Movie Posters
-🛠️ Technologies Used
-Category	Technology
-Programming Language	Python 3.9+
-Web Framework	Streamlit
-Machine Learning	Scikit-Learn
-Gradient Boosting	XGBoost
-NLP Embeddings	Sentence-BERT
-Latent Features	TruncatedSVD
-Explainable AI	OpenRouter GPT-OSS-120B
-Data Processing	Pandas, NumPy
-Visualization	Plotly
-Movie Posters	TMDB API
-📂 Project Structure
+```
 Movie-Recommender/
 │
-├── app.py
+├── app.py                          # Streamlit application entry point
 ├── requirements.txt
 │
 ├── models/
-│   ├── movies_processed.pkl
-│   ├── content_sim.npy
-│   ├── latent_sim.npy
-│   ├── xgb_model.pkl
-│   └── metadata.pkl
+│   ├── movies_processed.pkl        # Preprocessed movie dataset
+│   ├── content_sim.npy             # SBERT content similarity matrix
+│   ├── latent_sim.npy              # SVD latent similarity matrix
+│   ├── xgb_model.pkl               # Trained XGBoost re-ranker
+│   └── metadata.pkl                # Movie metadata
 │
 ├── src/
-│   ├── recommender.py
-│   ├── llm_explainer.py
-│   └── evaluation.py
+│   ├── recommender.py              # Core hybrid recommendation logic
+│   ├── llm_explainer.py            # OpenRouter AI explanation generator
+│   └── evaluation.py              # Evaluation metrics & ablation studies
 │
 └── .streamlit/
-    └── secrets.toml
-📦 Installation
-1. Clone the Repository
+    └── secrets.toml                # API keys (not committed to repo)
+```
+
+---
+
+## ⚙️ Installation
+
+### 1. Clone the Repository
+
+```bash
 git clone https://github.com/baizidyaldram/movieapplication.git
 cd movieapplication
-2. Create Virtual Environment (Optional)
-Windows
+```
+
+### 2. Create a Virtual Environment (Recommended)
+
+```bash
+# Windows
 python -m venv venv
 venv\Scripts\activate
-Linux / Mac
+
+# Linux / Mac
 python -m venv venv
 source venv/bin/activate
-3. Install Dependencies
+```
+
+### 3. Install Dependencies
+
+```bash
 pip install -r requirements.txt
-🔑 API Configuration
-OpenRouter API (Required)
-Create an account on OpenRouter
-Generate an API key
-Create:
-.streamlit/secrets.toml
+```
 
-Add:
+---
 
+## 🔑 API Configuration
+
+### OpenRouter API *(Required — for AI explanations)*
+
+1. Create an account at [openrouter.ai](https://openrouter.ai)
+2. Generate an API key
+3. Create `.streamlit/secrets.toml` and add:
+
+```toml
 OPENROUTER_API_KEY = "your-openrouter-api-key"
 TMDB_API_KEY = "your-tmdb-api-key"
-TMDB API (Optional)
+```
 
-Used for movie posters.
+### TMDB API *(Optional — for movie posters)*
 
-Create a TMDB account
-Generate an API key
-Add it to secrets.toml
-📥 Required Model Files
+1. Create an account at [themoviedb.org](https://www.themoviedb.org)
+2. Generate an API key and add it to `secrets.toml`
 
-Place the following files inside the models/ directory:
+---
 
-movies_processed.pkl
-content_sim.npy
-latent_sim.npy
-xgb_model.pkl
-metadata.pkl
-▶️ Run Locally
+## 📥 Required Model Files
+
+Place the following pre-trained files inside the `models/` directory before running:
+
+```
+models/
+├── movies_processed.pkl
+├── content_sim.npy
+├── latent_sim.npy
+├── xgb_model.pkl
+└── metadata.pkl
+```
+
+---
+
+## ▶️ Running Locally
+
+```bash
 streamlit run app.py
+```
 
-Application URL:
+Open your browser at: **http://localhost:8501**
 
-http://localhost:8501
-🌐 Deployment
+---
 
-The project is deployment-ready for:
+## 🌐 Deployment
 
-Streamlit Community Cloud
-Push project to GitHub
-Connect repository to Streamlit Cloud
-Add secrets
-Deploy
-Other Platforms
-Hugging Face Spaces
-Railway
-Render
-Heroku
-📊 Dataset
+The app is deployment-ready for several platforms:
 
-The recommendation system uses a processed movie metadata dataset containing approximately 4,375 movies.
+### Streamlit Community Cloud *(Recommended)*
+1. Push the project to GitHub
+2. Connect the repository at [share.streamlit.io](https://share.streamlit.io)
+3. Add your API keys in the Secrets manager
+4. Deploy
 
-Dataset Features
-Feature	Description
-Title	Movie title
-Overview	Plot summary
-Genres	Genre categories
-Keywords	Story keywords
-Vote Average	Average rating
-Vote Count	Number of votes
-Popularity	TMDB popularity score
-Release Year	Movie release year
-Runtime	Movie duration
-Dataset Statistics
-Metric	Value
-Movies	~4,375
-Year Range	1916 – 2016
-Genres	19+
-Rating Scale	0 – 10
-🎯 Example Queries
-Text-Based Search
-funny action movies with high ratings
-romantic dramas from the 2010s
-sci-fi thrillers like Inception
-scary horror movies with strong plots
-Movie-Based Search
-The Dark Knight + funny
-Inception + romantic
-Interstellar + mystery
-Titanic + adventure
-🧪 Evaluation Results
-Metric	Score
-Accuracy	85%+
-Precision	0.83
-Recall	0.81
-F1 Score	0.82
-AUC-ROC	0.90
-🎯 Future Improvements
-User-based collaborative filtering
-Personalized watch history
-User authentication system
-Recommendation history tracking
-Feedback system (Like/Dislike)
-Export recommendations to CSV
-Enhanced poster resolution
-Movie trailer integration
-Social sharing features
-Real-time recommendation updates
-🤝 Contributing
+### Other Platforms
+- **Hugging Face Spaces** — supports Streamlit apps natively
+- **Railway / Render** — containerized deployment
+- **Heroku** — via `Procfile` configuration
 
-Contributions are welcome.
+---
 
-Steps
-# Fork repository
+## 📊 Dataset
 
-# Create feature branch
-git checkout -b feature/AmazingFeature
+The system uses a processed movie metadata dataset of approximately **4,375 movies**.
 
-# Commit changes
-git commit -m "Add AmazingFeature"
+| Feature | Description |
+|---------|-------------|
+| Title | Movie title |
+| Overview | Plot summary |
+| Genres | Genre categories |
+| Keywords | Story keywords |
+| Vote Average | Average rating (0–10) |
+| Vote Count | Number of votes |
+| Popularity | TMDB popularity score |
+| Release Year | Year of release |
+| Runtime | Movie duration (minutes) |
 
-# Push changes
-git push origin feature/AmazingFeature
+**Dataset Statistics:**
 
-# Open Pull Request
-👨‍💻 Author
+| Metric | Value |
+|--------|-------|
+| Total Movies | ~4,375 |
+| Year Range | 1916 – 2016 |
+| Genres | 19+ |
+| Rating Scale | 0 – 10 |
 
-Baizid Yaldram
+---
 
-Master of Data Science
-University of Malaya
+## 🎯 Example Queries
 
-Research Interests
-Recommender Systems
-Machine Learning
-Generative AI
-Large Language Models (LLMs)
-Natural Language Processing
-🙏 Acknowledgments
+### Text-Based Search
+```
+"funny action movies with high ratings"
+"romantic dramas from the 2010s"
+"sci-fi thrillers like Inception"
+"scary horror movies with strong plots"
+```
 
-Special thanks to:
+### Movie-Based Search
+```
+The Dark Knight  →  similar funny films
+Inception        →  with a romantic element
+Interstellar     →  mystery-focused matches
+Titanic          →  adventure alternatives
+```
 
-OpenRouter
-TMDB
-Streamlit
-Sentence-BERT
-Scikit-Learn
-XGBoost
+---
 
-for providing the tools and resources that made this project possible.
+## 🔭 Future Improvements
 
-📜 License
+- [ ] User-based collaborative filtering
+- [ ] Personalized watch history & authentication
+- [ ] Like / Dislike feedback loop
+- [ ] Recommendation history tracking
+- [ ] Export recommendations to CSV
+- [ ] Movie trailer integration
+- [ ] Social sharing features
+- [ ] Real-time recommendation updates
 
-This project is intended for:
+---
 
-Educational purposes
-Research purposes
-Portfolio demonstration
-⭐ Support
+## 🤝 Contributing
 
-If you found this project useful, please consider giving the repository a ⭐ Star on GitHub.
+Contributions are welcome!
 
-It helps others discover the project and supports future development.
+```bash
+# Fork the repository
+
+# Create a feature branch
+git checkout -b feature/YourFeatureName
+
+# Commit your changes
+git commit -m "Add YourFeatureName"
+
+# Push to your branch
+git push origin feature/YourFeatureName
+
+# Open a Pull Request
+```
+
+---
+
+## 👨‍💻 Author
+
+**Baizid Yaldram**
+Master of Data Science — University of Malaya
+
+*Research interests: Recommender Systems · Machine Learning · Generative AI · LLMs · NLP*
+
+[![GitHub](https://img.shields.io/badge/GitHub-baizidyaldram-181717?style=flat-square&logo=github)](https://github.com/baizidyaldram)
+
+---
+
+## 🙏 Acknowledgments
+
+Special thanks to the open-source tools and APIs that made this project possible:
+
+[OpenRouter](https://openrouter.ai) · [TMDB](https://www.themoviedb.org) · [Streamlit](https://streamlit.io) · [Sentence-BERT](https://www.sbert.net) · [Scikit-Learn](https://scikit-learn.org) · [XGBoost](https://xgboost.ai)
+
+---
+
+## 📜 License
+
+This project is intended for **educational**, **research**, and **portfolio demonstration** purposes.
+
+---
+
+*If you found this project useful, please consider giving it a ⭐ on GitHub — it helps others discover the work!*
