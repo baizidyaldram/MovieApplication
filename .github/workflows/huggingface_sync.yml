@@ -20,4 +20,10 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://Baizid122:$HF_TOKEN@huggingface.co/spaces/Baizid122/MovieApplication main
+          git config --global user.email "actions@github.com"
+          git config --global user.name "github-actions"
+          git lfs install
+          git checkout --orphan deploy-branch
+          git add -A
+          git commit -m "Deploy Streamlit Movie Application to Hugging Face"
+          git push --force https://Baizid122:$HF_TOKEN@huggingface.co/spaces/Baizid122/MovieApplication deploy-branch:main
