@@ -20,4 +20,4 @@ jobs:
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git push --force https://baizidyaldram:$HF_TOKEN@huggingface.co/spaces/baizidyaldram/MovieApplication main
+          git push --force https://Baizid122:$HF_TOKEN@huggingface.co/spaces/Baizid122/MovieApplication main
