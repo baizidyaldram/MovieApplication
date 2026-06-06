@@ -619,7 +619,7 @@ with tab2:
     st.markdown(f'<div class="body-text" style="margin: 20px 0;">Found {len(filtered_df)} movies</div>', unsafe_allow_html=True)
     
     # Display as utility cards
-    display_df = filtered_df[['title', 'year', 'vote_average', 'popularity']].head(12)]
+    display_df = filtered_df[['title', 'year', 'vote_average', 'popularity']].head(12)
     
     # Grid layout for movies
     if len(display_df) > 0:
