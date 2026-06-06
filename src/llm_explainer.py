@@ -1,6 +1,17 @@
 from typing import Optional, List
 from openai import OpenAI
 import streamlit as st
+import os
+
+def get_secret(key):
+    if key in os.environ:
+        return os.environ[key]
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except:
+        pass
+    return None
 
 from src.recommender import (
     movie_to_idx,
@@ -38,8 +49,8 @@ def get_client():
     api_key = None
     if 'openrouter_api_key' in st.session_state and st.session_state.openrouter_api_key:
         api_key = st.session_state.openrouter_api_key
-    elif "OPENROUTER_API_KEY" in st.secrets:
-        api_key = st.secrets["OPENROUTER_API_KEY"]
+    else:
+        api_key = get_secret("OPENROUTER_API_KEY")
     
     if api_key:
         initialize_llm(api_key)

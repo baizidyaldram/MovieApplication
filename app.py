@@ -8,6 +8,18 @@ import requests
 from datetime import datetime
 import random
 import time
+import os
+
+def get_secret(key):
+    if key in os.environ:
+        return os.environ[key]
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except:
+        pass
+    return None
+
 
 # Page configuration
 st.set_page_config(
@@ -229,7 +241,7 @@ st.markdown("""
 
 # Initialize session state
 if 'openrouter_api_key' not in st.session_state:
-    st.session_state.openrouter_api_key = None
+    st.session_state.openrouter_api_key = get_secret("OPENROUTER_API_KEY")
 if 'recommendations' not in st.session_state:
     st.session_state.recommendations = None
 if 'auto_explain' not in st.session_state:
@@ -255,19 +267,17 @@ with st.sidebar:
     
     # API Configuration
     with st.expander("🔑 API Configuration", expanded=False):
-        try:
-            if "OPENROUTER_API_KEY" in st.secrets:
-                st.session_state.openrouter_api_key = st.secrets["OPENROUTER_API_KEY"]
-                st.success("✅ API Key Loaded")
-            else:
-                api_key_input = st.text_input("OpenRouter API Key", type="password")
-                if api_key_input:
-                    st.session_state.openrouter_api_key = api_key_input
-                    st.success("✅ Key set!")
-        except:
-            pass
+        openrouter_key = get_secret("OPENROUTER_API_KEY")
+        if openrouter_key:
+            st.session_state.openrouter_api_key = openrouter_key
+            st.success("✅ API Key Loaded")
+        else:
+            api_key_input = st.text_input("OpenRouter API Key", type="password")
+            if api_key_input:
+                st.session_state.openrouter_api_key = api_key_input
+                st.success("✅ Key set!")
         
-        if "TMDB_API_KEY" in st.secrets:
+        if get_secret("TMDB_API_KEY"):
             st.success("✅ TMDB API Ready")
     
     # Settings
@@ -291,8 +301,9 @@ if st.session_state.openrouter_api_key:
 # TMDB Poster function
 def get_movie_poster(movie_title, year=None, size="w342"):
     try:
-        if "TMDB_API_KEY" in st.secrets:
-            api_key = st.secrets["TMDB_API_KEY"]
+        tmdb_key = get_secret("TMDB_API_KEY")
+        if tmdb_key:
+            api_key = tmdb_key
             search_url = "https://api.themoviedb.org/3/search/movie"
             params = {"api_key": api_key, "query": movie_title, "language": "en-US"}
             if year and year != "N/A":
