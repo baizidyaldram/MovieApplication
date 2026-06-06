@@ -303,19 +303,31 @@ def get_movie_poster(movie_title, year=None, size="w342"):
     try:
         tmdb_key = get_secret("TMDB_API_KEY")
         if tmdb_key:
-            api_key = tmdb_key
             search_url = "https://api.themoviedb.org/3/search/movie"
-            params = {"api_key": api_key, "query": movie_title, "language": "en-US"}
+            params = {"query": movie_title, "language": "en-US"}
+            
+            # Clean up the year parameter to prevent floats like '1994.0'
             if year and year != "N/A":
-                params["year"] = year
-            response = requests.get(search_url, params=params, timeout=5)
+                try:
+                    params["year"] = str(int(float(year)))
+                except:
+                    params["year"] = str(year)
+            
+            headers = {}
+            # Auto-detect if it is a V4 Read Access Token (very long JWT string)
+            if len(tmdb_key) > 50:
+                headers["Authorization"] = f"Bearer {tmdb_key}"
+            else:
+                params["api_key"] = tmdb_key
+                
+            response = requests.get(search_url, params=params, headers=headers, timeout=5)
             data = response.json()
             if data.get("results") and len(data["results"]) > 0:
                 poster_path = data["results"][0].get("poster_path")
                 if poster_path:
                     return f"https://image.tmdb.org/t/p/{size}{poster_path}"
-    except:
-        pass
+    except Exception as e:
+        print(f"Error fetching poster for {movie_title}: {str(e)}")
     return None
 
 # Create tabs
