@@ -1,3 +1,13 @@
+---
+title: MovieApplication
+emoji: 🎬
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🎬 Hybrid Movie Recommendation System
 
 > An AI-powered recommendation engine combining Content-Based Filtering, Latent Semantic Analysis, Reciprocal Rank Fusion, XGBoost Re-Ranking, and Generative AI Explanations — delivering accurate, explainable, and personalized movie recommendations.
