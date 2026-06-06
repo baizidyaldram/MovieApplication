@@ -75,7 +75,7 @@ st.markdown("---")
 
 st.subheader("🏗 Recommendation Pipeline")
 
-st.markdown("""
+st.markdown(""")
 ```text
 Movie Query
      │
